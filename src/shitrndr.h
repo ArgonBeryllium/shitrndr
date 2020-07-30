@@ -46,6 +46,19 @@ SDL_Renderer* 	ren;
 
 SDL_Colour bg_col = {0xCC, 0xCC, 0xCC};
 
+void defOnKey(const SDL_Keycode& key)
+{
+	std::cout << "key action: " << SDL_GetKeyName(key) << '\n';
+}
+void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
+void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
+
+void defOnMM(const helpers::vec2& mp)
+{
+	std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; 
+}
+void (*onMouseMoved)(const helpers::vec2& mp) = &defOnMM;
+
 struct Input
 {
 private:
@@ -58,10 +71,15 @@ public:
 		keys = {};
 	}
 
-	static void setKey(const SDL_Keycode& key, const bool& state) { keys[key] = state; }
+	static void setKey(const SDL_Keycode& key, const bool& state)
+	{
+		keys[key] = state;
+		if(state)	onKeyDown(key);
+		else		onKeyUp(key);
+	}
 	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
 
-	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; }
+	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
 	static helpers::vec2 getMP() { return m_pos; } 
 };
 
