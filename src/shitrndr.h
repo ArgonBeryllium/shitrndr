@@ -23,41 +23,41 @@ struct vec2
     static float dot(const vec2& a, const vec2& b);
 };
 
-vec2 operator+(const vec2& a, const vec2& b) { return vec2{a.x + b.x, a.y + b.y}; }
-vec2 operator-(const vec2& a, const vec2& b) { return vec2{a.x - b.x, a.y - b.y}; }
-vec2 operator*(const vec2& a, const vec2& b) { return vec2{a.x * b.x, a.y * b.y}; }
-vec2 operator/(const vec2& a, const vec2& b) { return vec2{a.x / b.x, a.y / b.y}; }
-vec2 operator*(const vec2& v, float s) { return vec2{v.x*s, v.y*s}; } 
-vec2 operator/(const vec2& v, float s) { return vec2{v.x/s, v.y/s}; } 
+inline vec2 operator+(const vec2& a, const vec2& b) { return vec2{a.x + b.x, a.y + b.y}; }
+inline vec2 operator-(const vec2& a, const vec2& b) { return vec2{a.x - b.x, a.y - b.y}; }
+inline vec2 operator*(const vec2& a, const vec2& b) { return vec2{a.x * b.x, a.y * b.y}; }
+inline vec2 operator/(const vec2& a, const vec2& b) { return vec2{a.x / b.x, a.y / b.y}; }
+inline vec2 operator*(const vec2& v, float s) { return vec2{v.x*s, v.y*s}; } 
+inline vec2 operator/(const vec2& v, float s) { return vec2{v.x/s, v.y/s}; } 
 
-bool operator==(const vec2& a, const vec2& b) { return a.x==b.x && a.y==b.y; }
+inline bool operator==(const vec2& a, const vec2& b) { return a.x==b.x && a.y==b.y; }
 
-float vec2::getLength() { return sqrt(x*x + y*y); }
-float vec2::getLengthSquare() { return x*x + y*y; }
-vec2 vec2::normalised() { float l = getLength(); return l==0 ? vec2{} : *this / l; }
-float vec2::dot(const vec2& a, const vec2& b) { return a.x * b.x + a.y * b.y; }
+inline float vec2::getLength() { return sqrt(x*x + y*y); }
+inline float vec2::getLengthSquare() { return x*x + y*y; }
+inline vec2 vec2::normalised() { float l = getLength(); return l==0 ? vec2{} : *this / l; }
+inline float vec2::dot(const vec2& a, const vec2& b) { return a.x * b.x + a.y * b.y; }
 
 }
 
 namespace shitrndr
 {
-SDL_Window* 	win;
-SDL_Renderer* 	ren;
+inline SDL_Window* 	win;
+inline SDL_Renderer* 	ren;
 
-SDL_Colour bg_col = {0xCC, 0xCC, 0xCC};
+inline SDL_Colour bg_col = {0xCC, 0xCC, 0xCC};
 
-void defOnKey(const SDL_Keycode& key)
+inline void defOnKey(const SDL_Keycode& key)
 {
 	std::cout << "key action: " << SDL_GetKeyName(key) << '\n';
 }
-void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
-void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
+inline void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
+inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
 
-void defOnMM(const helpers::vec2& mp)
+inline void defOnMM(const helpers::vec2& mp)
 {
 	std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; 
 }
-void (*onMouseMoved)(const helpers::vec2& mp) = &defOnMM;
+inline void (*onMouseMoved)(const helpers::vec2& mp) = &defOnMM;
 
 struct Input
 {
@@ -83,7 +83,7 @@ public:
 	static helpers::vec2 getMP() { return m_pos; } 
 };
 
-void init(const char* name, int w, int h, bool resizable)
+inline void init(const char* name, int w, int h, bool resizable)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, resizable ? SDL_WINDOW_RESIZABLE : 0);
@@ -93,15 +93,15 @@ void init(const char* name, int w, int h, bool resizable)
 }
 
 // default onRender void
-void defOnRender(double d, double t)
+inline void defOnRender(double d, double t)
 {
 	std::cout << "delta: " << d << '\n';
 	std::cout << "elapsed: " << t << '\n';
 }
-void (*onRender)(double delta, double time) = &defOnRender;
+inline void (*onRender)(double delta, double time) = &defOnRender;
 
 // main loop
-void loop()
+inline void loop()
 {
 	SDL_Event ev;
 
@@ -143,15 +143,15 @@ void loop()
 
 constexpr float PI = 3.14159265358979;
 
-void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
+inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
 	float l = 2*PI*r;
 	for(float a = 0; a < l; a++)
 		SDL_RenderDrawPoint(rend, x + std::cos(a/l * 2*PI) * r, y + std::sin(a/l * 2*PI) * r);
 }
-void DrawCircle(const int& x, const int& y, const float& r) { RenderDrawCircle(ren, x, y, r); }
+inline void DrawCircle(const int& x, const int& y, const float& r) { RenderDrawCircle(ren, x, y, r); }
 
-void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
+inline void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
 	int rs = r*r;
 	for(int py = -r; py < r; py++)
@@ -159,6 +159,6 @@ void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, const floa
 			if(py*py + px*px < rs)
 				SDL_RenderDrawPoint(rend, x + px, y + py);
 }
-void FillCircle(const int& x, const int& y, const float& r) { RenderFillCircle(ren, x, y, r); }
+inline void FillCircle(const int& x, const int& y, const float& r) { RenderFillCircle(ren, x, y, r); }
 
 }
