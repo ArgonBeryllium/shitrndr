@@ -42,7 +42,7 @@ inline float vec2::dot(const vec2& a, const vec2& b) { return a.x * b.x + a.y * 
 namespace shitrndr
 {
 inline SDL_Window* 	win;
-inline SDL_Renderer* 	ren;
+inline SDL_Renderer* ren;
 
 inline SDL_Colour bg_col = {0xCC, 0xCC, 0xCC};
 
@@ -52,6 +52,14 @@ inline void defOnKey(const SDL_Keycode& key)
 }
 inline void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
+
+
+inline void defOnMB(const uint& but)
+{
+	std::cout << "mouse button action: " << but << '\n';
+}
+inline void (*onMBDown)(const uint& but) = &defOnMB;
+inline void (*onMBUp)(const uint& but) = &defOnMB;
 
 inline void defOnMM(const helpers::vec2& mp)
 {
@@ -63,12 +71,14 @@ struct Input
 {
 private:
 	inline static std::map<SDL_Keycode, bool> keys;
+	inline static std::map<uint, bool> mbs;
 	inline static helpers::vec2 m_pos;
 public:
 	static void init()
 	{
 		m_pos = {};
 		keys = {};
+		mbs = {};
 	}
 
 	static void setKey(const SDL_Keycode& key, const bool& state)
@@ -78,6 +88,14 @@ public:
 		else		onKeyUp(key);
 	}
 	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
+
+	static void setMB(const uint& but, const bool& state)
+	{
+		mbs[but] = state;
+		if(state)	onMBDown(but);
+		else		onMBUp(but);
+	}
+	static bool getMB(const int& but) { return mbs[but]; }
 
 	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
 	static helpers::vec2 getMP() { return m_pos; } 
@@ -121,6 +139,8 @@ inline void loop()
 				break;
 			case SDL_KEYDOWN:	Input::setKey(ev.key.keysym.sym, 1); break;
 			case SDL_KEYUP:		Input::setKey(ev.key.keysym.sym, 0); break;
+			case SDL_MOUSEBUTTONDOWN:	 Input::setMB(ev.button.button, 1); break;
+			case SDL_MOUSEBUTTONUP:		 Input::setMB(ev.button.button, 0); break;
 			}
 
 		// clear render buffer
