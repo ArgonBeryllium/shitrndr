@@ -2,7 +2,12 @@
 
 // general demo script
 
+
+#if defined _WIN32 || defined __CYGWIN__
+int WinMain()
+#else
 int main()
+#endif
 {
 	using namespace shitrndr;
 	init("test", 540, 360, 1);

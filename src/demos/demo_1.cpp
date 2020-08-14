@@ -43,7 +43,11 @@ struct cloud
 };
 cloud clouds[CLOUD_C];
 
+#if defined _WIN32 || defined __CYGWIN__
+int WinMain()
+#else
 int main()
+#endif
 {
 	for(uint i = 0; i < CLOUD_C; i++)
 	{

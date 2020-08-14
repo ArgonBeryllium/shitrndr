@@ -2,6 +2,11 @@
 #include <iostream>
 #include <map>
 
+#if defined _WIN32 || defined __CYGWIN__
+#include <cmath>
+#define uint unsigned int
+#endif
+
 #include <SDL2/SDL.h>
 
 namespace shitrndr::helpers
