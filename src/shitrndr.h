@@ -186,4 +186,11 @@ inline void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, con
 }
 inline void FillCircle(const int& x, const int& y, const float& r) { RenderFillCircle(ren, x, y, r); }
 
+inline void RenderFillRect(SDL_Renderer* rend, const SDL_Rect& r)
+{
+	const SDL_Rect r_ = r;
+	SDL_RenderFillRect(ren, &r);
+}
+inline void FillRect(const SDL_Rect& r) { RenderFillRect(ren, r); }
+
 }
