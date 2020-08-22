@@ -4,7 +4,6 @@
 
 #if defined _WIN32 || defined __CYGWIN__
 #include <cmath>
-#define uint unsigned int
 #endif
 
 #include <SDL2/SDL.h>
@@ -56,15 +55,16 @@ inline void defOnKey(const SDL_Keycode& key)
 	std::cout << "key action: " << SDL_GetKeyName(key) << '\n';
 }
 inline void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
+inline void (*onKeyHeld)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
 
 
-inline void defOnMB(const uint& but)
+inline void defOnMB(const uint8_t& but)
 {
 	std::cout << "mouse button action: " << but << '\n';
 }
-inline void (*onMBDown)(const uint& but) = &defOnMB;
-inline void (*onMBUp)(const uint& but) = &defOnMB;
+inline void (*onMBDown)(const uint8_t& but) = &defOnMB;
+inline void (*onMBUp)(const uint8_t& but) = &defOnMB;
 
 inline void defOnMM(const helpers::vec2& mp)
 {
@@ -76,7 +76,7 @@ struct Input
 {
 private:
 	inline static std::map<SDL_Keycode, bool> keys;
-	inline static std::map<uint, bool> mbs;
+	inline static std::map<uint8_t, bool> mbs;
 	inline static helpers::vec2 m_pos;
 public:
 	static void init()
@@ -94,13 +94,13 @@ public:
 	}
 	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
 
-	static void setMB(const uint& but, const bool& state)
+	static void setMB(const uint8_t& but, const bool& state)
 	{
 		mbs[but] = state;
 		if(state)	onMBDown(but);
 		else		onMBUp(but);
 	}
-	static bool getMB(const int& but) { return mbs[but]; }
+	static bool getMB(const uint8_t& but) { return mbs[but]; }
 
 	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
 	static helpers::vec2 getMP() { return m_pos; } 
@@ -142,7 +142,9 @@ inline void loop()
 				SDL_GetMouseState(&mx, &my);
 				Input::setMP(mx, my);
 				break;
-			case SDL_KEYDOWN:	Input::setKey(ev.key.keysym.sym, 1); break;
+			case SDL_KEYDOWN:
+				if(Input::getKey(ev.key.keysym.sym)) onKeyHeld(ev.key.keysym.sym);
+				else Input::setKey(ev.key.keysym.sym, 1); break;
 			case SDL_KEYUP:		Input::setKey(ev.key.keysym.sym, 0); break;
 			case SDL_MOUSEBUTTONDOWN:	 Input::setMB(ev.button.button, 1); break;
 			case SDL_MOUSEBUTTONUP:		 Input::setMB(ev.button.button, 0); break;
