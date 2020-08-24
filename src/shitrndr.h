@@ -10,36 +10,43 @@
 
 namespace shitrndr::helpers
 {
+template <typename T>
 struct vec2
 {
+    T x, y;
     vec2() : x(0), y(0) {}
-    vec2(const float x_, const float y_) : x(x_), y(y_) {}
-    float x, y;
-    float getLength();
-    float getLengthSquare();
-    vec2 normalised();
+    vec2(const T x_, const T y_) : x(x_), y(y_) {}
+    T getLength() { return sqrt(x*x + y*y); }
+    T getLengthSquare() { return x*x + y*y; }
+    vec2<T> normalised()  { T l = getLength(); return l==0 ? vec2{} : *this / l; }
+
     void operator+=(const vec2& v) { x += v.x; y += v.y; }
     void operator-=(const vec2& v) { x -= v.x; y -= v.y; }
     void operator*=(const vec2& v) { x *= v.x; y *= v.y; }
     void operator/=(const vec2& v) { x /= v.x; y /= v.y; }
     void operator*=(const float s) { x *= s; y *= s; }
     void operator/=(const float s) { x /= s; y /= s; }
-    static float dot(const vec2& a, const vec2& b);
+    static T dot(const vec2& a, const vec2& b);
 };
 
-inline vec2 operator+(const vec2& a, const vec2& b) { return vec2{a.x + b.x, a.y + b.y}; }
-inline vec2 operator-(const vec2& a, const vec2& b) { return vec2{a.x - b.x, a.y - b.y}; }
-inline vec2 operator*(const vec2& a, const vec2& b) { return vec2{a.x * b.x, a.y * b.y}; }
-inline vec2 operator/(const vec2& a, const vec2& b) { return vec2{a.x / b.x, a.y / b.y}; }
-inline vec2 operator*(const vec2& v, float s) { return vec2{v.x*s, v.y*s}; } 
-inline vec2 operator/(const vec2& v, float s) { return vec2{v.x/s, v.y/s}; } 
+template <typename T>
+inline vec2<T> operator+(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x + b.x, a.y + b.y}; }
+template <typename T>
+inline vec2<T> operator-(const vec2<T>&& a, const vec2<T>& b) { return vec2{a.x - b.x, a.y - b.y}; }
+template <typename T>
+inline vec2<T> operator*(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x * b.x, a.y * b.y}; }
+template <typename T>
+inline vec2<T> operator/(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x / b.x, a.y / b.y}; }
+template <typename T>
+inline vec2<T> operator*(const vec2<T>& v, float s) { return vec2{v.x*s, v.y*s}; } 
+template <typename T>
+inline vec2<T> operator/(const vec2<T>& v, float s) { return vec2{v.x/s, v.y/s}; } 
 
-inline bool operator==(const vec2& a, const vec2& b) { return a.x==b.x && a.y==b.y; }
+template <typename T>
+inline bool operator==(const vec2<T>& a, const vec2<T>& b) { return a.x==b.x && a.y==b.y; }
 
-inline float vec2::getLength() { return sqrt(x*x + y*y); }
-inline float vec2::getLengthSquare() { return x*x + y*y; }
-inline vec2 vec2::normalised() { float l = getLength(); return l==0 ? vec2{} : *this / l; }
-inline float vec2::dot(const vec2& a, const vec2& b) { return a.x * b.x + a.y * b.y; }
+template <typename T>
+inline T vec2<T>::dot(const vec2<T>& a, const vec2<T>& b) { return a.x * b.x + a.y * b.y; }
 
 }
 
@@ -66,18 +73,18 @@ inline void defOnMB(const uint8_t& but)
 inline void (*onMBDown)(const uint8_t& but) = &defOnMB;
 inline void (*onMBUp)(const uint8_t& but) = &defOnMB;
 
-inline void defOnMM(const helpers::vec2& mp)
+inline void defOnMM(const helpers::vec2<uint32_t>& mp)
 {
 	std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; 
 }
-inline void (*onMouseMoved)(const helpers::vec2& mp) = &defOnMM;
+inline void (*onMouseMoved)(const helpers::vec2<uint32_t>& mp) = &defOnMM;
 
 struct Input
 {
 private:
 	inline static std::map<SDL_Keycode, bool> keys;
 	inline static std::map<uint8_t, bool> mbs;
-	inline static helpers::vec2 m_pos;
+	inline static helpers::vec2<uint32_t> m_pos;
 public:
 	static void init()
 	{
@@ -103,7 +110,7 @@ public:
 	static bool getMB(const uint8_t& but) { return mbs[but]; }
 
 	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
-	static helpers::vec2 getMP() { return m_pos; } 
+	static helpers::vec2<uint32_t> getMP() { return m_pos; } 
 };
 struct WindowProps
 {
@@ -117,11 +124,11 @@ public:
 		h = h_;
 	}
 	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; updateSize(); }
-	static void setSize(const helpers::vec2& s) { setSize((uint32_t)s.x, (uint32_t)s.y); }
+	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
 	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
 	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
 
-	static helpers::vec2 getSize() { return {(float)w, (float)h}; }
+	static helpers::vec2<uint32_t> getSize() { return {w, h}; }
 	static uint32_t getWidth() { return w; }
 	static uint32_t getHeight() { return h; }
 };
