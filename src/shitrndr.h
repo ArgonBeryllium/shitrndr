@@ -166,15 +166,14 @@ inline void loop()
 	}
 }
 
-// drawing functions
 
-constexpr float PI = 3.14159265358979;
+// drawing functions
 
 inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
-	float l = 2*PI*r;
+	float l = 2*M_PI*r;
 	for(float a = 0; a < l; a++)
-		SDL_RenderDrawPoint(rend, x + std::cos(a/l * 2*PI) * r, y + std::sin(a/l * 2*PI) * r);
+		SDL_RenderDrawPoint(rend, x + std::cos(a/l * 2*M_PI) * r, y + std::sin(a/l * 2*M_PI) * r);
 }
 inline void DrawCircle(const int& x, const int& y, const float& r) { RenderDrawCircle(ren, x, y, r); }
 
