@@ -105,6 +105,26 @@ public:
 	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
 	static helpers::vec2 getMP() { return m_pos; } 
 };
+struct WindowProps
+{
+private:
+	inline static uint32_t w, h;
+	static void updateSize() { SDL_SetWindowSize(win, w, h); }
+public:
+	static void init(const uint32_t& w_, const uint32_t& h_)
+	{
+		w = w_;
+		h = h_;
+	}
+	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; updateSize(); }
+	static void setSize(const helpers::vec2& s) { setSize((uint32_t)s.x, (uint32_t)s.y); }
+	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
+	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
+
+	static helpers::vec2 getSize() { return {(float)w, (float)h}; }
+	static uint32_t getWidth() { return w; }
+	static uint32_t getHeight() { return h; }
+};
 
 inline void init(const char* name, int w, int h, bool resizable)
 {
@@ -113,6 +133,7 @@ inline void init(const char* name, int w, int h, bool resizable)
 	ren = SDL_CreateRenderer(win, -1, 0);
 
 	Input::init();
+	WindowProps::init(w, h);
 }
 
 // default onRender void
@@ -135,6 +156,7 @@ inline void loop()
 	{
 		// handle events
 		while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE)
+		{
 			switch (ev.type)
 			{
 			case SDL_MOUSEMOTION:
@@ -149,6 +171,9 @@ inline void loop()
 			case SDL_MOUSEBUTTONDOWN:	 Input::setMB(ev.button.button, 1); break;
 			case SDL_MOUSEBUTTONUP:		 Input::setMB(ev.button.button, 0); break;
 			}
+			if(ev.window.event==SDL_WINDOWEVENT_RESIZED)
+				WindowProps::setSize(ev.window.data1, ev.window.data2); 
+		}
 
 		// clear render buffer
 		SDL_SetRenderDrawColor(shitrndr::ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
