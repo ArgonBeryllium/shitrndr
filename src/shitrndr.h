@@ -156,7 +156,7 @@ inline void loop()
 {
 	SDL_Event ev;
 
-	Uint32 last;
+	Uint32 last = SDL_GetTicks();
 	double delta, elapsed = 0;
 
 	while(ev.window.event != SDL_WINDOWEVENT_CLOSE)
