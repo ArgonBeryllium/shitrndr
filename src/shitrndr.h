@@ -196,6 +196,8 @@ inline void loop()
 		SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
 		SDL_Delay(1);
 	}
+
+	SDL_Quit();
 }
 
 
