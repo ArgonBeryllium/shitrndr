@@ -1,16 +1,24 @@
 CXX=clang++
-CFLAGS=--std=c++17
 MINGW=x86_64-w64-mingw32-g++
-MINGWFLAGS=-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread
+EMXX=em++
 
 LIBS=-lSDL2
+CXXFLAGS=--std=c++17
+MINGWFLAGS=-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread
+EMXXFLAGS=-s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png","jpg"]'
+
 DEMO_NO=0
 
+SOURCE=src/* src/**/*
 OUT_FILE=bin/demo
-OUT_FILE_WIN=bin/demo.exe
+OUT_FILE_WIN=bin/win/demo.exe
+OUT_FILE_WEB=bin/web/demo.html
 
-demo: src/* src/**/*
-	$(CXX) src/demos/demo_$(DEMO_NO).cpp $(LIBS) $(CFLAGS) -o $(OUT_FILE)
+demo: $(SOURCE)
+	$(CXX) src/demos/demo_$(DEMO_NO).cpp $(LIBS) $(CXXFLAGS) -o $(OUT_FILE)
 
-demo-win: src/* src/**/*
-	$(MINGW) src/demos/demo_$(DEMO_NO).cpp $(LIBS) $(CFLAGS) $(MINGWFLAGS) -o $(OUT_FILE_WIN)
+demo-win: $(SOURCE) 
+	$(MINGW) src/demos/demo_$(DEMO_NO).cpp $(LIBS) $(CXXFLAGS) $(MINGWFLAGS) -o $(OUT_FILE_WIN)
+
+test-web: $(SOURCE)
+	$(EMXX) src/demos/demo_$(DEMO_NO).cpp $(CXXFLAGS) $(EMXXFLAGS) -o $(OUT_FILE_WEB) 
