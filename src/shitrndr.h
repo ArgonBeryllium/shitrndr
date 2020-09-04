@@ -35,7 +35,7 @@ struct vec2
 template <typename T>
 inline vec2<T> operator+(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x + b.x, a.y + b.y}; }
 template <typename T>
-inline vec2<T> operator-(const vec2<T>&& a, const vec2<T>& b) { return vec2{a.x - b.x, a.y - b.y}; }
+inline vec2<T> operator-(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x - b.x, a.y - b.y}; }
 template <typename T>
 inline vec2<T> operator*(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x * b.x, a.y * b.y}; }
 template <typename T>
