@@ -160,6 +160,9 @@ inline Uint32 last = SDL_GetTicks();
 inline double delta, elapsed = 0;
 
 inline void loopCycle()
+#else
+inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapsed)
+#endif
 {
 	// handle events
 	while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE)
@@ -181,7 +184,10 @@ inline void loopCycle()
 		if(ev.window.event==SDL_WINDOWEVENT_RESIZED)
 			WindowProps::setSize(ev.window.data1, ev.window.data2); 
 	}
-	if(ev.window.event==SDL_WINDOWEVENT_CLOSE) emscripten_cancel_main_loop();
+#ifdef __EMSCRIPTEN__
+	if(ev.window.event==SDL_WINDOWEVENT_CLOSE)
+		emscripten_cancel_main_loop();
+#endif
 
 	// clear render buffer
 	SDL_SetRenderDrawColor(shitrndr::ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
@@ -193,11 +199,10 @@ inline void loopCycle()
 	last = SDL_GetTicks();
 
 	onRender(delta, elapsed);
-
 	SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
+
 	SDL_Delay(1);
 }
-#endif
 
 // main loop
 inline void loop()
@@ -209,42 +214,7 @@ inline void loop()
 	double delta, elapsed = 0;
 
 	while(ev.window.event != SDL_WINDOWEVENT_CLOSE)
-	{
-		// handle events
-		while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE)
-		{
-			switch (ev.type)
-			{
-			case SDL_MOUSEMOTION:
-				int mx, my;
-				SDL_GetMouseState(&mx, &my);
-				Input::setMP(mx, my);
-				break;
-			case SDL_KEYDOWN:
-				if(Input::getKey(ev.key.keysym.sym)) onKeyHeld(ev.key.keysym.sym);
-				else Input::setKey(ev.key.keysym.sym, 1); break;
-			case SDL_KEYUP:		Input::setKey(ev.key.keysym.sym, 0); break;
-			case SDL_MOUSEBUTTONDOWN:	 Input::setMB(ev.button.button, 1); break;
-			case SDL_MOUSEBUTTONUP:		 Input::setMB(ev.button.button, 0); break;
-			}
-			if(ev.window.event==SDL_WINDOWEVENT_RESIZED)
-				WindowProps::setSize(ev.window.data1, ev.window.data2); 
-		}
-
-		// clear render buffer
-		SDL_SetRenderDrawColor(shitrndr::ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
-		SDL_RenderClear(ren);
-		
-		// calculate timing
-		delta 	= 	(double)(SDL_GetTicks() - last)	/ 1000;
-		elapsed	= 	(double)(SDL_GetTicks()) 		/ 1000;
-		last = SDL_GetTicks();
-
-		onRender(delta, elapsed);
-
-		SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
-		SDL_Delay(1);
-	}
+		loopCycle(ev, last, delta, elapsed);
 
 	SDL_Quit();
 #else
