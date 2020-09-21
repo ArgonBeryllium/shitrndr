@@ -228,7 +228,6 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 		delete[] pixels;
 	}
 	SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
-	SDL_Delay(1);
 }
 
 // main loop
