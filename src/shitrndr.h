@@ -82,6 +82,12 @@ inline void defOnMM(const helpers::vec2<uint32_t>& mp)
 }
 inline void (*onMouseMoved)(const helpers::vec2<uint32_t>& mp) = &defOnMM;
 
+inline void defOnEvent(SDL_Event* event)
+{
+	std::cout << "SDL event: " << event->type << '\n'; 
+}
+inline void (*onEvent)(SDL_Event* event) = &defOnEvent;
+
 struct Input
 {
 private:
@@ -183,6 +189,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 	// handle events
 	while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE)
 	{
+		onEvent(&ev);
 		switch (ev.type)
 		{
 		case SDL_MOUSEMOTION:
@@ -254,6 +261,7 @@ inline void silentDefs()
 	onMBUp = onMBDown = [](const uint8_t& but){}; 
 	onMouseMoved = [](const helpers::vec2<uint32_t>& mp){};
 	onKeyDown = onKeyHeld = onKeyUp = [](const SDL_Keycode& key) {};
+	onEvent = [](SDL_Event* event) {};
 }
 
 
