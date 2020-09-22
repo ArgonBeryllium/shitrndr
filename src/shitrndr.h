@@ -133,6 +133,7 @@ public:
 		SDL_SetWindowSize(win, w, h);
 
 		format = SDL_GetWindowPixelFormat(win);
+		if(renProxy) SDL_DestroyTexture(renProxy);
 		renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, w/pixScale, h/pixScale);
 	}
 
