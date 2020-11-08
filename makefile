@@ -5,7 +5,7 @@ EMXX=em++
 LIBS=-lSDL2
 CXXFLAGS=--std=c++17
 MINGWFLAGS=-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread
-EMXXFLAGS=-s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png","jpg"]'
+EMXXFLAGS=-s WASM=1 -s USE_SDL=2
 
 DEMO_NO=0
 
