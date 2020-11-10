@@ -1,4 +1,4 @@
-#include "../shitrndr.h"
+#include "shitrndr.h"
 
 #if defined _WIN32 || defined __CYGWIN__
 int WinMain()
