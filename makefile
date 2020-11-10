@@ -20,5 +20,5 @@ demo: $(SOURCE)
 demo-win: $(SOURCE) 
 	$(MINGW) src/demos/demo_$(DEMO_NO).cpp $(LIBS) $(CXXFLAGS) $(MINGWFLAGS) -o $(OUT_FILE_WIN)
 
-test-web: $(SOURCE)
+demo-web: $(SOURCE)
 	$(EMXX) src/demos/demo_$(DEMO_NO).cpp $(CXXFLAGS) $(EMXXFLAGS) -o $(OUT_FILE_WEB) 
