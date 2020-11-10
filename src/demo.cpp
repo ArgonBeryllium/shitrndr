@@ -24,9 +24,9 @@ int main()
 				SDL_SetRenderDrawColor(ren, x * 255/COUNT, y * 255/COUNT, 0, 255);
 				int s = SIZE * (.6 + std::sin(t*4 + (x + y)/2) / 3);
 				
-				int d = (mx-20-SIZE*x)*(mx-20-SIZE*x)+(my-20-SIZE*y)*(my-20-SIZE*y);
-				d /= SIZE;
-				if(d < 4*SIZE)
+				int dst = (mx-20-SIZE*x)*(mx-20-SIZE*x)+(my-20-SIZE*y)*(my-20-SIZE*y);
+				dst /= SIZE;
+				if(dst < 4*SIZE)
 				{
 					s /= 5;
 					s += d/5;
@@ -36,6 +36,7 @@ int main()
 
 		SDL_Delay(16); // to prevent CPU overloading
 	};
+	onKeyDown = [](const SDL_Keycode& key) { std::cout << SDL_GetKeyName(key) << " pressed.\n"; };
 
 	loop();
 
