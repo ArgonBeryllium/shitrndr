@@ -1,5 +1,4 @@
 #pragma once
-
 /*
 Copyright (c) 2020 ArBe
 
@@ -21,7 +20,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 
 #include <iostream>
 #include <map>
@@ -74,7 +72,6 @@ inline bool operator==(const vec2<T>& a, const vec2<T>& b) { return a.x==b.x && 
 
 template <typename T>
 inline T vec2<T>::dot(const vec2<T>& a, const vec2<T>& b) { return a.x * b.x + a.y * b.y; }
-
 }
 
 namespace shitrndr
@@ -82,35 +79,29 @@ namespace shitrndr
 inline SDL_Window* 	win;
 inline SDL_Renderer* ren;
 
-inline SDL_Colour bg_col = {0xCC, 0xCC, 0xCC};
+// clear/background colour
+inline SDL_Colour bg_col = {0xCC, 0xCC, 0xCC, 0xFF};
 
-inline void defOnKey(const SDL_Keycode& key)
+// default event voids
+inline void defOnKey(const SDL_Keycode& key) { std::cout << "key action: " << SDL_GetKeyName(key) << '\n'; }
+inline void defOnMB(const uint8_t& but) { std::cout << "mouse button action: " << but << '\n'; }
+inline void defOnMM(const helpers::vec2<uint32_t>& mp) { std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; }
+inline void defOnEvent(SDL_Event* event) { std::cout << "SDL event: " << event->type << '\n'; }
+inline void defOnRender(double d, double t)
 {
-	std::cout << "key action: " << SDL_GetKeyName(key) << '\n';
+	std::cout << "delta: " << d << '\n';
+	std::cout << "elapsed: " << t << '\n';
 }
+
+// event function pointers
 inline void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyHeld)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
-
-
-inline void defOnMB(const uint8_t& but)
-{
-	std::cout << "mouse button action: " << but << '\n';
-}
 inline void (*onMBDown)(const uint8_t& but) = &defOnMB;
 inline void (*onMBUp)(const uint8_t& but) = &defOnMB;
-
-inline void defOnMM(const helpers::vec2<uint32_t>& mp)
-{
-	std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; 
-}
 inline void (*onMouseMoved)(const helpers::vec2<uint32_t>& mp) = &defOnMM;
-
-inline void defOnEvent(SDL_Event* event)
-{
-	std::cout << "SDL event: " << event->type << '\n'; 
-}
 inline void (*onEvent)(SDL_Event* event) = &defOnEvent;
+inline void (*onRender)(double delta, double time) = &defOnRender;
 
 struct Input
 {
@@ -126,23 +117,24 @@ public:
 		mbs = {};
 	}
 
+	// setters are for internal use only
 	static void setKey(const SDL_Keycode& key, const bool& state)
 	{
 		keys[key] = state;
 		if(state)	onKeyDown(key);
 		else		onKeyUp(key);
 	}
-	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
-
 	static void setMB(const uint8_t& but, const bool& state)
 	{
 		mbs[but] = state;
 		if(state)	onMBDown(but);
 		else		onMBUp(but);
 	}
-	static bool getMB(const uint8_t& but) { return mbs[but]; }
-
 	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
+
+	// for external use
+	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
+	static bool getMB(const uint8_t& but) { return mbs[but]; }
 	static helpers::vec2<uint32_t> getMP() { return m_pos; } 
 };
 struct WindowProps
@@ -150,8 +142,10 @@ struct WindowProps
 private:
 	inline static uint32_t w, h, pixScale = 1;
 public:
+	// for internal use
 	inline static SDL_Texture* renProxy;
 	inline static Uint32 format;
+
 	static void updateSize()
 	{
 		SDL_SetWindowSize(win, w, h);
@@ -160,19 +154,19 @@ public:
 		if(renProxy) SDL_DestroyTexture(renProxy);
 		renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, w/pixScale, h/pixScale);
 	}
-
+	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; updateSize(); }
+	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
+	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
+	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
+	static void setPixScale(const uint32_t& scale) { pixScale = scale; updateSize(); }
 	static void init(const uint32_t& w_, const uint32_t& h_)
 	{
 		w = w_;
 		h = h_;
 		updateSize();
 	}
-	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; updateSize(); }
-	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
-	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
-	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
-	static void setPixScale(const uint32_t& scale) { pixScale = scale; updateSize(); }
 
+	// for external use
 	static helpers::vec2<uint32_t> getSize() { return {(uint32_t)(w/pixScale), (uint32_t)(h/pixScale)}; }
 	static SDL_Rect getSizeRect() { return {0, 0, (int)(w/pixScale), (int)(h/pixScale)}; }
 	static SDL_Rect getRealSizeRect() { return {0, 0, (int)w, (int)h}; }
@@ -192,14 +186,6 @@ inline void init(const char* name, int w, int h, bool resizable)
 	Input::init();
 	WindowProps::init(w, h);
 }
-
-// default onRender void
-inline void defOnRender(double d, double t)
-{
-	std::cout << "delta: " << d << '\n';
-	std::cout << "elapsed: " << t << '\n';
-}
-inline void (*onRender)(double delta, double time) = &defOnRender;
 
 #ifdef __EMSCRIPTEN__
 inline SDL_Event ev;
@@ -241,7 +227,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 	SDL_SetRenderDrawColor(shitrndr::ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
 	SDL_RenderClear(ren);
 	
-	// calculate timing
+	// calculate timing (in seconds)
 	delta 	= 	(double)(SDL_GetTicks() - last)	/ 1000;
 	elapsed	= 	(double)(SDL_GetTicks()) 		/ 1000;
 	last = SDL_GetTicks();
@@ -280,6 +266,8 @@ inline void loop()
 #endif
 }
 
+// replaces the default event functions with empty ones,
+// useful if you don't enjoy an abysmally cluttered cout
 inline void silentDefs()
 {
 	onRender = [](double d, double t){};
