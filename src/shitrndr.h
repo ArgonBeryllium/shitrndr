@@ -76,7 +76,7 @@ inline T vec2<T>::dot(const vec2<T>& a, const vec2<T>& b) { return a.x * b.x + a
 
 namespace shitrndr
 {
-inline SDL_Window* 	win;
+inline SDL_Window* win;
 inline SDL_Renderer* ren;
 
 // clear/background colour
@@ -298,11 +298,17 @@ inline void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, con
 }
 inline void FillCircle(const int& x, const int& y, const float& r) { RenderFillCircle(ren, x, y, r); }
 
-inline void RenderFillRect(SDL_Renderer* rend, const SDL_Rect& r)
-{
-	const SDL_Rect r_ = r;
-	SDL_RenderFillRect(ren, &r);
-}
+inline void RenderFillRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderFillRect(ren, &r); }
 inline void FillRect(const SDL_Rect& r) { RenderFillRect(ren, r); }
 
+inline void RenderDrawRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderDrawRect(rend, &r); }
+inline void DrawRect(const SDL_Rect& r) { RenderDrawRect(ren, r); }
+
+inline void RenderCopy(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst) { SDL_RenderCopy(rend, tex, &src, &dst); }
+inline void RenderCopy(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& dst) { SDL_RenderCopy(rend, tex, 0, &dst); }
+inline void Copy(SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst) { RenderCopy(ren, tex, src, dst); }
+inline void Copy(SDL_Texture* tex, const SDL_Rect& dst) { RenderCopy(ren, tex, dst); }
+
+inline void RenderCopyEx(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip) { SDL_RenderCopyEx(rend, tex, &src, &dst, angle, &centre, flip); }
+inline void CopyEx(SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip) { SDL_RenderCopyEx(ren, tex, &src, &dst, angle, &centre, flip); }
 }
