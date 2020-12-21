@@ -140,7 +140,7 @@ public:
 struct WindowProps
 {
 private:
-	inline static uint32_t w, h, pixScale = 1;
+	inline static uint32_t w, h, sw, sh, pixScale = 1;
 public:
 	// for internal use
 	inline static SDL_Texture* renProxy;
@@ -152,13 +152,12 @@ public:
 
 		format = SDL_GetWindowPixelFormat(win);
 		if(renProxy) SDL_DestroyTexture(renProxy);
-		renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, w/pixScale, h/pixScale);
+		renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, sw, sh);
 	}
 	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; updateSize(); }
 	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
 	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
 	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
-	static void setPixScale(const uint32_t& scale) { pixScale = scale; updateSize(); }
 	static void init(const uint32_t& w_, const uint32_t& h_)
 	{
 		w = w_;
@@ -167,14 +166,16 @@ public:
 	}
 
 	// for external use
-	static helpers::vec2<uint32_t> getSize() { return {(uint32_t)(w/pixScale), (uint32_t)(h/pixScale)}; }
-	static SDL_Rect getSizeRect() { return {0, 0, (int)(w/pixScale), (int)(h/pixScale)}; }
+	static helpers::vec2<uint32_t> getSize() { return {(uint32_t)sw, (uint32_t)sh}; }
+	static SDL_Rect getSizeRect() { return {0, 0, (int)sw, (int)sh}; }
 	static SDL_Rect getRealSizeRect() { return {0, 0, (int)w, (int)h}; }
-	static uint32_t getWidth() { return w/pixScale; }
-	static uint32_t getHeight() { return h/pixScale; }
+	static uint32_t getWidth() { return sw; }
+	static uint32_t getHeight() { return sh; }
 	static uint32_t getRealWidth() { return w; }
 	static uint32_t getRealHeight() { return h; }
 	static uint32_t getPixScale() { return pixScale; }
+	static void setPixScale(const uint32_t& scale) { pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
+	static void setScaledSize(const uint32_t& sw_, const uint32_t& sh_) { sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
 };
 
 inline void init(const char* name, int w, int h, bool resizable)
