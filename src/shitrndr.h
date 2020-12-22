@@ -154,14 +154,14 @@ public:
 		if(renProxy) SDL_DestroyTexture(renProxy);
 		renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, sw, sh);
 	}
-	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; updateSize(); }
+	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; sw = w/pixScale; sh = h/pixScale; updateSize(); }
 	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
 	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
 	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
 	static void init(const uint32_t& w_, const uint32_t& h_)
 	{
-		w = w_;
-		h = h_;
+		sw = w = w_;
+		sh = h = h_;
 		updateSize();
 	}
 
