@@ -19,7 +19,7 @@ If you're using clang++/g++, you're going to need these:
 
 ### MINGW flags
 Aside from the flags mentioned [above](#general-clang-gcc), you'll need to add the flags listed below if you don't want to ship your executable with a bunch of DLLs:
-- `-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread` -- with MINGW, you have to specify these standard libraries for it to link them statically.
+- `-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++` -- with MINGW, you have to specify these standard libraries for it to link them statically.
 
 ### Emscripten flags
 Emscripten won't need any of the above to compile, but to include & link the SDL2 port to your application, add:
