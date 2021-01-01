@@ -178,11 +178,11 @@ public:
 	static void setScaledSize(const uint32_t& sw_, const uint32_t& sh_) { sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
 };
 
-inline void init(const char* name, int w, int h, bool resizable)
+inline void init(const char* name, int w, int h, bool resizable = 1, uint32_t winFlags = 0, uint32_t renFlags = 0)
 {
 	SDL_Init(SDL_INIT_VIDEO);
-	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, resizable ? SDL_WINDOW_RESIZABLE : 0);
-	ren = SDL_CreateRenderer(win, -1, 0);
+	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, (resizable ? SDL_WINDOW_RESIZABLE : 0) | winFlags);
+	ren = SDL_CreateRenderer(win, -1, renFlags);
 
 	Input::init();
 	WindowProps::init(w, h);
