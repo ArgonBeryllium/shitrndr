@@ -49,8 +49,8 @@ struct vec2
     void operator-=(const vec2& v) { x -= v.x; y -= v.y; }
     void operator*=(const vec2& v) { x *= v.x; y *= v.y; }
     void operator/=(const vec2& v) { x /= v.x; y /= v.y; }
-    void operator*=(const float s) { x *= s; y *= s; }
-    void operator/=(const float s) { x /= s; y /= s; }
+    void operator*=(const float& s) { x *= s; y *= s; }
+    void operator/=(const float& s) { x /= s; y /= s; }
     static T dot(const vec2& a, const vec2& b);
 };
 
@@ -63,12 +63,18 @@ inline vec2<T> operator*(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x *
 template <typename T>
 inline vec2<T> operator/(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x / b.x, a.y / b.y}; }
 template <typename T>
-inline vec2<T> operator*(const vec2<T>& v, float s) { return vec2{v.x*s, v.y*s}; } 
+inline vec2<T> operator*(const vec2<T>& v, const float& s) { return vec2{v.x*s, v.y*s}; } 
 template <typename T>
-inline vec2<T> operator/(const vec2<T>& v, float s) { return vec2{v.x/s, v.y/s}; } 
+inline vec2<T> operator/(const vec2<T>& v, const float& s) { return vec2{v.x/s, v.y/s}; } 
+template <typename T>
+inline vec2<T> operator*(const float& s, const vec2<T>& v) { return vec2{v.x*s, v.y*s}; } 
+template <typename T>                  
+inline vec2<T> operator/(const float& s, const vec2<T>& v) { return vec2{v.x/s, v.y/s}; } 
 
 template <typename T>
 inline bool operator==(const vec2<T>& a, const vec2<T>& b) { return a.x==b.x && a.y==b.y; }
+template <typename T>
+inline bool operator!=(const vec2<T>& a, const vec2<T>& b) { return !a==b; }
 
 template <typename T>
 inline T vec2<T>::dot(const vec2<T>& a, const vec2<T>& b) { return a.x * b.x + a.y * b.y; }
