@@ -147,6 +147,7 @@ struct WindowProps
 {
 private:
 	inline static uint32_t w, h, sw, sh, pixScale = 1;
+	inline static bool slocked;
 public:
 	// for internal use
 	inline static SDL_Texture* renProxy;
@@ -157,10 +158,13 @@ public:
 		SDL_SetWindowSize(win, w, h);
 
 		format = SDL_GetWindowPixelFormat(win);
-		if(renProxy) SDL_DestroyTexture(renProxy);
-		renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, sw, sh);
+		if(!slocked)
+		{
+			if(renProxy) SDL_DestroyTexture(renProxy);
+			renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, sw, sh);
+		}
 	}
-	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; sw = w/pixScale; sh = h/pixScale; updateSize(); }
+	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; if(!getLocked()) { sw = w/pixScale; sh = h/pixScale; } updateSize(); }
 	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
 	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
 	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
@@ -180,8 +184,10 @@ public:
 	static uint32_t getRealWidth() { return w; }
 	static uint32_t getRealHeight() { return h; }
 	static uint32_t getPixScale() { return pixScale; }
-	static void setPixScale(const uint32_t& scale) { pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
-	static void setScaledSize(const uint32_t& sw_, const uint32_t& sh_) { sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
+	static bool getLocked() { return slocked; }
+	static void setPixScale(const uint32_t& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
+	static void setScaledSize(const uint32_t& sw_, const uint32_t& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
+	static void setLocked(const bool& lock) { slocked = lock; }
 };
 
 inline void init(const char* name, int w, int h, bool resizable = 1, uint32_t winFlags = 0, uint32_t renFlags = 0)
@@ -235,22 +241,27 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 	SDL_RenderClear(ren);
 	
 	// calculate timing (in seconds)
-	delta 	= 	(double)(SDL_GetTicks() - last)	/ 1000;
-	elapsed	= 	(double)(SDL_GetTicks()) 		/ 1000;
+	delta 	= 	(double)(SDL_GetTicks() - last)	/ 1000.;
+	elapsed	= 	(double)(SDL_GetTicks()) 		/ 1000.;
 	last = SDL_GetTicks();
 
 	onRender(delta, elapsed);
 
 	if(WindowProps::getPixScale()!=1)
 	{
-		uint32_t* pixels = new uint32_t[WindowProps::getWidth()*WindowProps::getHeight()];
+		static uint32_t pc = WindowProps::getWidth()*WindowProps::getHeight();
+		static uint32_t* pixels = new uint32_t[pc];
+		if(pc!=WindowProps::getWidth()*WindowProps::getHeight())
+		{
+			pc = WindowProps::getWidth()*WindowProps::getHeight();
+			delete[] pixels;
+			pixels = new uint32_t[pc];
+		}
 		SDL_Rect r = WindowProps::getSizeRect();
 
 		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, r.w*4);
 		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, r.w*4);
 		SDL_RenderCopy(ren, WindowProps::renProxy, &r, 0);
-
-		delete[] pixels;
 	}
 	SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
 }
