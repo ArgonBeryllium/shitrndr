@@ -26,6 +26,6 @@ int main()
 	};
 	WindowProps::setPixScale(2);
 	WindowProps::setLocked(1);
-	WindowProps::lock_type = WindowProps::CUTOFF;
+	WindowProps::lock_type = WindowProps::BARS;
 	loop();
 }
