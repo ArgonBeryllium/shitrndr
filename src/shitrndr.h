@@ -87,6 +87,8 @@ inline SDL_Renderer* ren;
 
 // clear/background colour
 inline SDL_Colour bg_col = {0xCC, 0xCC, 0xCC, 0xFF};
+// side bars colour for WindowProps::lockType::BARS
+inline static SDL_Colour bars_col = {0,0,0,255};
 
 // default event voids
 inline void defOnKey(const SDL_Keycode& key) { std::cout << "key action: " << SDL_GetKeyName(key) << '\n'; }
@@ -149,6 +151,9 @@ private:
 	inline static uint32_t w, h, sw, sh, pixScale = 1;
 	inline static bool slocked;
 public:
+	enum lockType { STRETCH, CUTOFF, BARS };
+	inline static lockType lock_type = STRETCH;
+
 	// for internal use
 	inline static SDL_Texture* renProxy;
 	inline static Uint32 format;
@@ -257,11 +262,49 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 			delete[] pixels;
 			pixels = new uint32_t[pc];
 		}
-		SDL_Rect r = WindowProps::getSizeRect();
 
-		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, r.w*4);
-		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, r.w*4);
-		SDL_RenderCopy(ren, WindowProps::renProxy, &r, 0);
+		SDL_Rect r = WindowProps::getSizeRect();
+		int pitch = r.w*4;
+
+		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, pitch);
+		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, pitch);
+
+		SDL_Rect d;
+		if(WindowProps::getLocked())
+		{
+			switch(WindowProps::lock_type)
+			{
+				case WindowProps::BARS:
+					{
+						SDL_SetRenderDrawColor(ren, bars_col.r, bars_col.g, bars_col.b, bars_col.a);
+						SDL_RenderFillRect(ren, 0);
+
+						float cR = float(WindowProps::getRealWidth())/WindowProps::getRealHeight(), oR = float(WindowProps::getWidth())/WindowProps::getHeight(); 
+						d = WindowProps::getRealSizeRect();
+						if(cR>oR)
+						{
+							d.w = oR*d.h;
+							d.x = (WindowProps::getRealWidth()-d.w)/2;
+						}
+						else if(oR>cR)
+						{
+							d.h = d.w/oR;
+							d.y = (WindowProps::getRealHeight()-d.h)/2;
+						}
+					} break;
+				case WindowProps::CUTOFF:
+					{
+						float cR = float(WindowProps::getRealWidth())/WindowProps::getRealHeight(), oR = float(WindowProps::getWidth())/WindowProps::getHeight(); 
+						d = WindowProps::getRealSizeRect();
+						if(cR>oR) d.h = d.w/oR;
+						else if(oR>cR) d.w = oR*d.h;
+					} break;
+				case WindowProps::STRETCH:
+				default: d = WindowProps::getRealSizeRect(); break;
+			}
+		}
+		else d = WindowProps::getRealSizeRect();
+		SDL_RenderCopy(ren, WindowProps::renProxy, &r, &d);
 	}
 	SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
 }
