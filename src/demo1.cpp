@@ -10,10 +10,12 @@ int main()
 
 	init("shitrndr demo 1", 640, 480, 1, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	silentDefs();
-	bg_col = {115, 115, 125, 255};
+	bg_col = {15, 15, 45, 255};
 	onRender = [](double d, double t)
 	{
-		std::srand(2);
+		static int s = 2;
+		if(Input::getKey(SDLK_SPACE)) s = std::rand();
+		std::srand(s);
 		for(int i = 0; i != 10; i++)
 		{
 			SDL_SetRenderDrawColor(ren, std::rand()%255, std::rand()%255, std::rand()%255, 255);
