@@ -45,31 +45,43 @@ struct vec2
     T getLengthSquare() { return x*x + y*y; }
     vec2<T> normalised()  { T l = getLength(); return l==0 ? vec2{} : *this / l; }
 
-    void operator+=(const vec2& v) { x += v.x; y += v.y; }
-    void operator-=(const vec2& v) { x -= v.x; y -= v.y; }
-    void operator*=(const vec2& v) { x *= v.x; y *= v.y; }
-    void operator/=(const vec2& v) { x /= v.x; y /= v.y; }
-    void operator*=(const float& s) { x *= s; y *= s; }
-    void operator/=(const float& s) { x /= s; y /= s; }
+	template <typename T2>
+    void operator+=(const vec2<T2>& v) { x += (T)v.x; y += (T)v.y; }
+	template <typename T2>
+    void operator-=(const vec2<T2>& v) { x -= (T)v.x; y -= (T)v.y; }
+	template <typename T2>
+    void operator*=(const vec2<T2>& v) { x *= (T)v.x; y *= (T)v.y; }
+	template <typename T2>
+    void operator/=(const vec2<T2>& v) { x /= (T)v.x; y /= (T)v.y; }
+	template <typename T2>
+    void operator*=(const T2& s) { x *= (T)s; y *= (T)s; }
+	template <typename T2>
+    void operator/=(const T2& s) { x /= (T)s; y /= (T)s; }
+
     static T dot(const vec2& a, const vec2& b);
+
+	template <typename T2>
+	vec2<T2> to() { return {(T2)x, (T2)y}; }
 };
 
-template <typename T>
-inline vec2<T> operator+(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x + b.x, a.y + b.y}; }
-template <typename T>
-inline vec2<T> operator-(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x - b.x, a.y - b.y}; }
-template <typename T>
-inline vec2<T> operator*(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x * b.x, a.y * b.y}; }
-template <typename T>
-inline vec2<T> operator/(const vec2<T>& a, const vec2<T>& b) { return vec2{a.x / b.x, a.y / b.y}; }
-template <typename T>
-inline vec2<T> operator*(const vec2<T>& v, const float& s) { return vec2{v.x*s, v.y*s}; } 
-template <typename T>
-inline vec2<T> operator/(const vec2<T>& v, const float& s) { return vec2{v.x/s, v.y/s}; } 
-template <typename T>
-inline vec2<T> operator*(const float& s, const vec2<T>& v) { return vec2{v.x*s, v.y*s}; } 
-template <typename T>                  
-inline vec2<T> operator/(const float& s, const vec2<T>& v) { return vec2{v.x/s, v.y/s}; } 
+template <typename T1, typename T2>
+inline vec2<T1> operator+(const vec2<T1>& a, const vec2<T2>& b) { return vec2<T1>{a.x + (T1)b.x, a.y + (T1)b.y}; }
+template <typename T1, typename T2>
+inline vec2<T1> operator-(const vec2<T1>& a, const vec2<T2>& b) { return vec2<T1>{a.x - (T1)b.x, a.y - (T1)b.y}; }
+template <typename T1, typename T2>
+inline vec2<T1> operator*(const vec2<T1>& a, const vec2<T2>& b) { return vec2<T1>{a.x * (T1)b.x, a.y * (T1)b.y}; }
+template <typename T1, typename T2>
+inline vec2<T1> operator/(const vec2<T1>& a, const vec2<T2>& b) { return vec2<T1>{a.x / (T1)b.x, a.y / (T1)b.y}; }
+
+template <typename T1, typename T2>
+inline vec2<T1> operator*(const vec2<T1>& v, const T2& s) { return vec2<T1>{v.x*(T1)s, v.y*(T1)s}; } 
+template <typename T1, typename T2>
+inline vec2<T1> operator/(const vec2<T1>& v, const T2& s) { return vec2<T1>{v.x/(T1)s, v.y/(T1)s}; } 
+
+template <typename T1, typename T2>
+inline vec2<T1> operator*(const T1& s, const vec2<T2>& v) { return vec2<T1>{s*(T1)v.x, s*(T1)v.y}; } 
+template <typename T1, typename T2>
+inline vec2<T1> operator/(const T1& s, const vec2<T2>& v) { return vec2<T1>{s/(T1)v.x, s/(T1)v.y}; } 
 
 template <typename T>
 inline bool operator==(const vec2<T>& a, const vec2<T>& b) { return a.x==b.x && a.y==b.y; }
@@ -111,40 +123,6 @@ inline void (*onMouseMoved)(const helpers::vec2<int>& mp) = &defOnMM;
 inline void (*onEvent)(SDL_Event* event) = &defOnEvent;
 inline void (*onRender)(double delta, double time) = &defOnRender;
 
-struct Input
-{
-private:
-	inline static std::map<SDL_Keycode, bool> keys;
-	inline static std::map<uint8_t, bool> mbs;
-	inline static helpers::vec2<int> m_pos;
-public:
-	static void init()
-	{
-		m_pos = {};
-		keys = {};
-		mbs = {};
-	}
-
-	// setters are for internal use only
-	static void setKey(const SDL_Keycode& key, const bool& state)
-	{
-		keys[key] = state;
-		if(state)	onKeyDown(key);
-		else		onKeyUp(key);
-	}
-	static void setMB(const uint8_t& but, const bool& state)
-	{
-		mbs[but] = state;
-		if(state)	onMBDown(but);
-		else		onMBUp(but);
-	}
-	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
-
-	// for external use
-	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
-	static bool getMB(const uint8_t& but) { return mbs[but]; }
-	static helpers::vec2<int> getMP() { return m_pos; } 
-};
 struct WindowProps
 {
 private:
@@ -182,6 +160,7 @@ public:
 
 	// for external use
 	static helpers::vec2<int> getSize() { return {sw, sh}; }
+	static helpers::vec2<int> getRealSize() { return {w, h}; }
 	static SDL_Rect getSizeRect() { return {0, 0, sw, sh}; }
 	static SDL_Rect getRealSizeRect() { return {0, 0, w, h}; }
 	static int getWidth() { return sw; }
@@ -194,6 +173,42 @@ public:
 	static void setScaledSize(const int& sw_, const int& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
 	static void setLocked(const bool& lock) { slocked = lock; }
 };
+struct Input
+{
+private:
+	inline static std::map<SDL_Keycode, bool> keys;
+	inline static std::map<uint8_t, bool> mbs;
+	inline static helpers::vec2<int> m_pos;
+public:
+	static void init()
+	{
+		m_pos = {};
+		keys = {};
+		mbs = {};
+	}
+
+	// setters are for internal use only
+	static void setKey(const SDL_Keycode& key, const bool& state)
+	{
+		keys[key] = state;
+		if(state)	onKeyDown(key);
+		else		onKeyUp(key);
+	}
+	static void setMB(const uint8_t& but, const bool& state)
+	{
+		mbs[but] = state;
+		if(state)	onMBDown(but);
+		else		onMBUp(but);
+	}
+	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
+
+	// for external use
+	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
+	static bool getMB(const uint8_t& but) { return mbs[but]; }
+	static helpers::vec2<int> getMP() { return m_pos; } 
+	static helpers::vec2<int> getSSMP() { return (m_pos.to<float>()/WindowProps::getRealSize()*WindowProps::getSize()).to<int>(); } 
+};
+
 
 inline void init(const char* name, int w, int h, bool resizable = 1, int winFlags = 0, int renFlags = 0)
 {
