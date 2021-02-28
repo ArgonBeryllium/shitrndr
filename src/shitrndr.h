@@ -93,7 +93,7 @@ inline static SDL_Colour bars_col = {0,0,0,255};
 // default event voids
 inline void defOnKey(const SDL_Keycode& key) { std::cout << "key action: " << SDL_GetKeyName(key) << '\n'; }
 inline void defOnMB(const uint8_t& but) { std::cout << "mouse button action: " << but << '\n'; }
-inline void defOnMM(const helpers::vec2<uint32_t>& mp) { std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; }
+inline void defOnMM(const helpers::vec2<int>& mp) { std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; }
 inline void defOnEvent(SDL_Event* event) { std::cout << "SDL event: " << event->type << '\n'; }
 inline void defOnRender(double d, double t)
 {
@@ -107,7 +107,7 @@ inline void (*onKeyHeld)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onMBDown)(const uint8_t& but) = &defOnMB;
 inline void (*onMBUp)(const uint8_t& but) = &defOnMB;
-inline void (*onMouseMoved)(const helpers::vec2<uint32_t>& mp) = &defOnMM;
+inline void (*onMouseMoved)(const helpers::vec2<int>& mp) = &defOnMM;
 inline void (*onEvent)(SDL_Event* event) = &defOnEvent;
 inline void (*onRender)(double delta, double time) = &defOnRender;
 
@@ -116,7 +116,7 @@ struct Input
 private:
 	inline static std::map<SDL_Keycode, bool> keys;
 	inline static std::map<uint8_t, bool> mbs;
-	inline static helpers::vec2<uint32_t> m_pos;
+	inline static helpers::vec2<int> m_pos;
 public:
 	static void init()
 	{
@@ -143,12 +143,12 @@ public:
 	// for external use
 	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
 	static bool getMB(const uint8_t& but) { return mbs[but]; }
-	static helpers::vec2<uint32_t> getMP() { return m_pos; } 
+	static helpers::vec2<int> getMP() { return m_pos; } 
 };
 struct WindowProps
 {
 private:
-	inline static uint32_t w, h, sw, sh, pixScale = 1;
+	inline static int w, h, sw, sh, pixScale = 1;
 	inline static bool slocked;
 public:
 	enum lockType { STRETCH, CUTOFF, BARS };
@@ -169,11 +169,11 @@ public:
 			renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, sw, sh);
 		}
 	}
-	static void setSize(const uint32_t& w_, const uint32_t& h_) { w = w_; h = h_; if(!getLocked()) { sw = w/pixScale; sh = h/pixScale; } updateSize(); }
-	static void setSize(const helpers::vec2<uint32_t>& s) { setSize(s.x, s.y); }
-	static void setWidth(const uint32_t& w_) { w = w_; updateSize(); }
-	static void setHeight(const uint32_t& h_) { h = h_; updateSize(); }
-	static void init(const uint32_t& w_, const uint32_t& h_)
+	static void setSize(const int& w_, const int& h_) { w = w_; h = h_; if(!getLocked()) { sw = w/pixScale; sh = h/pixScale; } updateSize(); }
+	static void setSize(const helpers::vec2<int>& s) { setSize(s.x, s.y); }
+	static void setWidth(const int& w_) { w = w_; updateSize(); }
+	static void setHeight(const int& h_) { h = h_; updateSize(); }
+	static void init(const int& w_, const int& h_)
 	{
 		sw = w = w_;
 		sh = h = h_;
@@ -181,21 +181,21 @@ public:
 	}
 
 	// for external use
-	static helpers::vec2<uint32_t> getSize() { return {(uint32_t)sw, (uint32_t)sh}; }
-	static SDL_Rect getSizeRect() { return {0, 0, (int)sw, (int)sh}; }
-	static SDL_Rect getRealSizeRect() { return {0, 0, (int)w, (int)h}; }
-	static uint32_t getWidth() { return sw; }
-	static uint32_t getHeight() { return sh; }
-	static uint32_t getRealWidth() { return w; }
-	static uint32_t getRealHeight() { return h; }
-	static uint32_t getPixScale() { return pixScale; }
+	static helpers::vec2<int> getSize() { return {sw, sh}; }
+	static SDL_Rect getSizeRect() { return {0, 0, sw, sh}; }
+	static SDL_Rect getRealSizeRect() { return {0, 0, w, h}; }
+	static int getWidth() { return sw; }
+	static int getHeight() { return sh; }
+	static int getRealWidth() { return w; }
+	static int getRealHeight() { return h; }
+	static int getPixScale() { return pixScale; }
 	static bool getLocked() { return slocked; }
-	static void setPixScale(const uint32_t& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
-	static void setScaledSize(const uint32_t& sw_, const uint32_t& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
+	static void setPixScale(const int& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
+	static void setScaledSize(const int& sw_, const int& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
 	static void setLocked(const bool& lock) { slocked = lock; }
 };
 
-inline void init(const char* name, int w, int h, bool resizable = 1, uint32_t winFlags = 0, uint32_t renFlags = 0)
+inline void init(const char* name, int w, int h, bool resizable = 1, int winFlags = 0, int renFlags = 0)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, (resizable ? SDL_WINDOW_RESIZABLE : 0) | winFlags);
@@ -254,7 +254,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 
 	if(WindowProps::getPixScale()!=1)
 	{
-		static uint32_t pc = WindowProps::getWidth()*WindowProps::getHeight();
+		static int pc = WindowProps::getWidth()*WindowProps::getHeight();
 		static uint32_t* pixels = new uint32_t[pc];
 		if(pc!=WindowProps::getWidth()*WindowProps::getHeight())
 		{
@@ -333,7 +333,7 @@ inline void silentDefs()
 {
 	onRender = [](double d, double t){};
 	onMBUp = onMBDown = [](const uint8_t& but){}; 
-	onMouseMoved = [](const helpers::vec2<uint32_t>& mp){};
+	onMouseMoved = [](const helpers::vec2<int>& mp){};
 	onKeyDown = onKeyHeld = onKeyUp = [](const SDL_Keycode& key) {};
 	onEvent = [](SDL_Event* event) {};
 }
