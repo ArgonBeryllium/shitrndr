@@ -1,6 +1,6 @@
 #pragma once
 /*
-Copyright (c) 2020 ArBe
+Copyright (c) 2020-2021 ArBe
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,9 @@ struct vec2
     vec2<T> normalised()  { T l = getLength(); return l==0 ? vec2{} : *this / l; }
 
 	template <typename T2>
+	const vec2<T2> to() const { return {(T2)x, (T2)y}; }
+
+	template <typename T2>
     void operator+=(const vec2<T2>& v) { x += (T)v.x; y += (T)v.y; }
 	template <typename T2>
     void operator-=(const vec2<T2>& v) { x -= (T)v.x; y -= (T)v.y; }
@@ -58,10 +61,8 @@ struct vec2
 	template <typename T2>
     void operator/=(const T2& s) { x /= (T)s; y /= (T)s; }
 
+	// Dot product of the two input vectors.
     static T dot(const vec2& a, const vec2& b);
-
-	template <typename T2>
-	vec2<T2> to() { return {(T2)x, (T2)y}; }
 };
 
 template <typename T1, typename T2>
@@ -97,12 +98,13 @@ namespace shitrndr
 inline SDL_Window* win;
 inline SDL_Renderer* ren;
 
-// clear/background colour
+// Clear/background colour
 inline SDL_Colour bg_col = {0xCC, 0xCC, 0xCC, 0xFF};
-// side bars colour for WindowProps::lockType::BARS
+
+// Side bars colour for WindowProps::lockType::BARS
 inline static SDL_Colour bars_col = {0,0,0,255};
 
-// default event voids
+// DEFAULT EVENT VOIDS //
 inline void defOnKey(const SDL_Keycode& key) { std::cout << "key action: " << SDL_GetKeyName(key) << '\n'; }
 inline void defOnMB(const uint8_t& but) { std::cout << "mouse button action: " << but << '\n'; }
 inline void defOnMM(const helpers::vec2<int>& mp) { std::cout << "mouse moved: { " << mp.x << ", " << mp.y << " }\n"; }
@@ -112,8 +114,9 @@ inline void defOnRender(double d, double t)
 	std::cout << "delta: " << d << '\n';
 	std::cout << "elapsed: " << t << '\n';
 }
+/////////////////////////
 
-// event function pointers
+// EVENT FUNCTION POINTERS //
 inline void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyHeld)(const SDL_Keycode& key) = &defOnKey;
 inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
@@ -122,17 +125,19 @@ inline void (*onMBUp)(const uint8_t& but) = &defOnMB;
 inline void (*onMouseMoved)(const helpers::vec2<int>& mp) = &defOnMM;
 inline void (*onEvent)(SDL_Event* event) = &defOnEvent;
 inline void (*onRender)(double delta, double time) = &defOnRender;
+/////////////////////////////
 
 struct WindowProps
 {
 private:
-	inline static int w, h, sw, sh, pixScale = 1;
+	inline static int w, h, sw, sh;
+	inline static int pixScale = 1;
 	inline static bool slocked;
 public:
 	enum lockType { STRETCH, CUTOFF, BARS };
 	inline static lockType lock_type = STRETCH;
 
-	// for internal use
+	// For internal use // 
 	inline static SDL_Texture* renProxy;
 	inline static Uint32 format;
 
@@ -140,11 +145,15 @@ public:
 	{
 		SDL_SetWindowSize(win, w, h);
 
-		format = SDL_GetWindowPixelFormat(win);
 		if(!slocked)
 		{
+			SDL_SetRenderTarget(ren, 0);
+
+			format = SDL_GetWindowPixelFormat(win);
 			if(renProxy) SDL_DestroyTexture(renProxy);
-			renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, sw, sh);
+			renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_TARGET, sw, sh);
+
+			SDL_SetRenderTarget(ren, renProxy);
 		}
 	}
 	static void setSize(const int& w_, const int& h_) { w = w_; h = h_; if(!getLocked()) { sw = w/pixScale; sh = h/pixScale; } updateSize(); }
@@ -157,21 +166,27 @@ public:
 		sh = h = h_;
 		updateSize();
 	}
+	//////////////////////
 
-	// for external use
+	// For external use //
 	static helpers::vec2<int> getSize() { return {sw, sh}; }
 	static helpers::vec2<int> getRealSize() { return {w, h}; }
+
 	static SDL_Rect getSizeRect() { return {0, 0, sw, sh}; }
 	static SDL_Rect getRealSizeRect() { return {0, 0, w, h}; }
+
 	static int getWidth() { return sw; }
 	static int getHeight() { return sh; }
 	static int getRealWidth() { return w; }
 	static int getRealHeight() { return h; }
+
 	static int getPixScale() { return pixScale; }
 	static bool getLocked() { return slocked; }
+
 	static void setPixScale(const int& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
 	static void setScaledSize(const int& sw_, const int& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
 	static void setLocked(const bool& lock) { slocked = lock; }
+	//////////////////////
 };
 struct Input
 {
@@ -187,7 +202,7 @@ public:
 		mbs = {};
 	}
 
-	// setters are for internal use only
+	// For internal use //
 	static void setKey(const SDL_Keycode& key, const bool& state)
 	{
 		keys[key] = state;
@@ -201,25 +216,27 @@ public:
 		else		onMBUp(but);
 	}
 	static void setMP(const int& x, const int& y) { m_pos.x = x; m_pos.y = y; onMouseMoved(m_pos); }
+	//////////////////////
 
-	// for external use
+	// For external use //
 	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
 	static bool getMB(const uint8_t& but) { return mbs[but]; }
 	static helpers::vec2<int> getMP() { return m_pos; } 
 	static helpers::vec2<int> getSSMP() { return (m_pos.to<float>()/WindowProps::getRealSize()*WindowProps::getSize()).to<int>(); } 
+	//////////////////////
 };
-
 
 inline void init(const char* name, int w, int h, bool resizable = 1, int winFlags = 0, int renFlags = 0)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, (resizable ? SDL_WINDOW_RESIZABLE : 0) | winFlags);
-	ren = SDL_CreateRenderer(win, -1, renFlags);
+	ren = SDL_CreateRenderer(win, -1, renFlags | SDL_RENDERER_TARGETTEXTURE);
 
 	Input::init();
 	WindowProps::init(w, h);
 }
 
+// For internal use only //
 #ifdef __EMSCRIPTEN__
 inline SDL_Event ev;
 inline Uint32 last = SDL_GetTicks();
@@ -230,7 +247,6 @@ inline void loopCycle()
 inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapsed)
 #endif
 {
-	// handle events
 	while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE)
 	{
 		onEvent(&ev);
@@ -256,35 +272,20 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 		emscripten_cancel_main_loop();
 #endif
 
-	// clear render buffer
-	SDL_SetRenderDrawColor(shitrndr::ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
+	SDL_SetRenderDrawColor(ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
 	SDL_RenderClear(ren);
 	
-	// calculate timing (in seconds)
 	delta 	= 	(double)(SDL_GetTicks() - last)	/ 1000.;
 	elapsed	= 	(double)(SDL_GetTicks()) 		/ 1000.;
 	last = SDL_GetTicks();
 
 	onRender(delta, elapsed);
 
-	if(WindowProps::getPixScale()!=1)
+	if(WindowProps::getPixScale()!=1 || WindowProps::getLocked())
 	{
-		static int pc = WindowProps::getWidth()*WindowProps::getHeight();
-		static uint32_t* pixels = new uint32_t[pc];
-		if(pc!=WindowProps::getWidth()*WindowProps::getHeight())
-		{
-			pc = WindowProps::getWidth()*WindowProps::getHeight();
-			delete[] pixels;
-			pixels = new uint32_t[pc];
-		}
-
 		SDL_Rect r = WindowProps::getSizeRect();
-		int pitch = r.w*4;
-
-		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, pitch);
-		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, pitch);
-
 		SDL_Rect d;
+
 		if(WindowProps::getLocked())
 		{
 			switch(WindowProps::lock_type)
@@ -292,6 +293,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 				case WindowProps::BARS:
 					{
 						SDL_SetRenderDrawColor(ren, bars_col.r, bars_col.g, bars_col.b, bars_col.a);
+						SDL_SetRenderTarget(ren, 0);
 						SDL_RenderFillRect(ren, 0);
 
 						float cR = float(WindowProps::getRealWidth())/WindowProps::getRealHeight(), oR = float(WindowProps::getWidth())/WindowProps::getHeight(); 
@@ -319,12 +321,17 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 			}
 		}
 		else d = WindowProps::getRealSizeRect();
-		SDL_RenderCopy(ren, WindowProps::renProxy, &r, &d);
-	}
-	SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
-}
 
-// main loop
+		SDL_SetRenderTarget(ren, 0);
+		SDL_RenderCopy(ren, WindowProps::renProxy, &r, &d);
+		SDL_RenderPresent(shitrndr::ren);
+		SDL_SetRenderTarget(ren, WindowProps::renProxy);
+	}
+	else SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
+}
+///////////////////////////
+
+// Main loop
 inline void loop()
 {
 #ifndef __EMSCRIPTEN__
@@ -342,7 +349,7 @@ inline void loop()
 #endif
 }
 
-// replaces the default event functions with empty ones,
+// Replaces the default event functions with empty ones,
 // useful if you don't enjoy an abysmally cluttered cout
 inline void silentDefs()
 {
@@ -354,8 +361,7 @@ inline void silentDefs()
 }
 
 
-// drawing functions
-
+// DRAWING FUNCTIONS //
 inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
 	float l = 2*M_PI*r;
@@ -387,4 +393,5 @@ inline void Copy(SDL_Texture* tex, const SDL_Rect& dst) { RenderCopy(ren, tex, d
 
 inline void RenderCopyEx(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip) { SDL_RenderCopyEx(rend, tex, &src, &dst, angle, &centre, flip); }
 inline void CopyEx(SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip) { SDL_RenderCopyEx(ren, tex, &src, &dst, angle, &centre, flip); }
+///////////////////////
 }
