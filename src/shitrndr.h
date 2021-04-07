@@ -327,7 +327,11 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 		SDL_RenderPresent(shitrndr::ren);
 		SDL_SetRenderTarget(ren, WindowProps::renProxy);
 	}
-	else SDL_RenderPresent(shitrndr::ren); // copy render buffer to window
+	else
+	{
+		SDL_SetRenderTarget(ren, 0);
+		SDL_RenderPresent(shitrndr::ren);
+	}
 }
 ///////////////////////////
 
@@ -362,6 +366,9 @@ inline void silentDefs()
 
 
 // DRAWING FUNCTIONS //
+inline void SetRenderColour(SDL_Renderer* rend, const SDL_Colour& col) { SDL_SetRenderDrawColor(rend, col.r, col.g, col.b, col.a); }
+inline void SetColour(const SDL_Colour& col) { SetRenderColour(ren, col); }
+
 inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
 	float l = 2*M_PI*r;
