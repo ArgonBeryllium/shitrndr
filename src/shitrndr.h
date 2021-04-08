@@ -154,7 +154,7 @@ public:
 			renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_TARGET, sw, sh);
 
 #if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
-			SDL_SetRenderTarget(ren, renProxy);
+			if(pixScale!=1) SDL_SetRenderTarget(ren, renProxy);
 #endif
 		}
 	}
