@@ -158,6 +158,25 @@ public:
 #endif
 		}
 	}
+	static void updateRenProxy()
+	{
+#if defined _WIN32 || defined __CYGWIN__ || defined __EMSCRIPTEN__
+		SDL_Rect r = getSizeRect();
+		static int pc = WindowProps::getWidth()*WindowProps::getHeight();
+		static uint32_t* pixels = new uint32_t[pc];
+		if(pc!=WindowProps::getWidth()*WindowProps::getHeight())
+		{
+			pc = WindowProps::getWidth()*WindowProps::getHeight();
+			delete[] pixels;
+			pixels = new uint32_t[pc];
+		}
+
+		int pitch = r.w*4;
+
+		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, pitch);
+		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, pitch);
+#endif
+	}
 	static void setSize(const int& w_, const int& h_) { w = w_; h = h_; if(!getLocked()) { sw = w/pixScale; sh = h/pixScale; } updateSize(); }
 	static void setSize(const helpers::vec2<int>& s) { setSize(s.x, s.y); }
 	static void setWidth(const int& w_) { w = w_; updateSize(); }
@@ -288,21 +307,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 		SDL_Rect r = WindowProps::getSizeRect();
 		SDL_Rect d;
 
-#if defined _WIN32 || defined __CYGWIN__ || defined __EMSCRIPTEN__
-		static int pc = WindowProps::getWidth()*WindowProps::getHeight();
-		static uint32_t* pixels = new uint32_t[pc];
-		if(pc!=WindowProps::getWidth()*WindowProps::getHeight())
-		{
-			pc = WindowProps::getWidth()*WindowProps::getHeight();
-			delete[] pixels;
-			pixels = new uint32_t[pc];
-		}
-
-		int pitch = r.w*4;
-
-		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, pitch);
-		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, pitch);
-#endif
+		WindowProps::updateRenProxy();
 
 		if(WindowProps::getLocked())
 		{
