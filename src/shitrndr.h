@@ -33,6 +33,8 @@ SOFTWARE.
 
 #include <SDL2/SDL.h>
 
+#pragma clang diagnostic ignored "-Wc++17-extensions"
+
 namespace shitrndr::helpers
 {
 template <typename T>
@@ -46,7 +48,7 @@ struct vec2
     vec2<T> normalised()  { T l = getLength(); return l==0 ? vec2{} : *this / l; }
 
 	template <typename T2>
-	const vec2<T2> to() const { return {(T2)x, (T2)y}; }
+	vec2<T2> to() const { return {(T2)x, (T2)y}; }
 
 	template <typename T2>
     void operator+=(const vec2<T2>& v) { x += (T)v.x; y += (T)v.y; }
@@ -87,7 +89,7 @@ inline vec2<T1> operator/(const T1& s, const vec2<T2>& v) { return vec2<T1>{s/(T
 template <typename T>
 inline bool operator==(const vec2<T>& a, const vec2<T>& b) { return a.x==b.x && a.y==b.y; }
 template <typename T>
-inline bool operator!=(const vec2<T>& a, const vec2<T>& b) { return !a==b; }
+inline bool operator!=(const vec2<T>& a, const vec2<T>& b) { return !(a==b); }
 
 template <typename T>
 inline T vec2<T>::dot(const vec2<T>& a, const vec2<T>& b) { return a.x * b.x + a.y * b.y; }
@@ -410,7 +412,7 @@ inline void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, con
 }
 inline void FillCircle(const int& x, const int& y, const float& r) { RenderFillCircle(ren, x, y, r); }
 
-inline void RenderFillRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderFillRect(ren, &r); }
+inline void RenderFillRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderFillRect(rend, &r); }
 inline void FillRect(const SDL_Rect& r) { RenderFillRect(ren, r); }
 
 inline void RenderDrawRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderDrawRect(rend, &r); }
