@@ -131,14 +131,13 @@ inline void (*onRender)(double delta, double time) = &defOnRender;
 
 struct WindowProps
 {
+	enum lockType { STRETCH, CUTOFF, BARS };
 private:
 	inline static int w, h, sw, sh;
 	inline static int pixScale = 1;
 	inline static bool slocked;
-public:
-	enum lockType { STRETCH, CUTOFF, BARS };
 	inline static lockType lock_type = STRETCH;
-
+public:
 	// For internal use // 
 	inline static SDL_Texture* renProxy;
 	inline static Uint32 format;
@@ -198,17 +197,19 @@ public:
 	static SDL_Rect getSizeRect() { return {0, 0, sw, sh}; }
 	static SDL_Rect getRealSizeRect() { return {0, 0, w, h}; }
 
-	static int getWidth() { return sw; }
-	static int getHeight() { return sh; }
-	static int getRealWidth() { return w; }
-	static int getRealHeight() { return h; }
+	static inline int getWidth() { return sw; }
+	static inline int getHeight() { return sh; }
+	static inline int getRealWidth() { return w; }
+	static inline int getRealHeight() { return h; }
 
-	static int getPixScale() { return pixScale; }
-	static bool getLocked() { return slocked; }
+	static inline int getPixScale() { return pixScale; }
+	static inline bool getLocked() { return slocked; }
+    static inline lockType getLockType() { return lock_type; }
 
-	static void setPixScale(const int& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
 	static void setScaledSize(const int& sw_, const int& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
+	static void setPixScale(const int& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
 	static void setLocked(const bool& lock) { slocked = lock; }
+    static void setLockType(lockType type) { lock_type = type; }
 	//////////////////////
 };
 struct Input
@@ -242,16 +243,20 @@ public:
 	//////////////////////
 
 	// For external use //
-	static bool getKey(const SDL_Keycode& key) { return keys[key]; }
-	static bool getMB(const uint8_t& but) { return mbs[but]; }
-	static helpers::vec2<int> getMP() { return m_pos; } 
-	static helpers::vec2<int> getSSMP() { return (m_pos.to<float>()/WindowProps::getRealSize()*WindowProps::getSize()).to<int>(); } 
+	static inline bool getKey(const SDL_Keycode& key) { return keys[key]; }
+	static inline bool getMB(const uint8_t& but) { return mbs[but]; }
+	static inline helpers::vec2<int> getMP() { return (m_pos.to<float>()/WindowProps::getRealSize()*WindowProps::getSize()).to<int>(); } 
+	static inline helpers::vec2<int> getRealMP() { return m_pos; } 
 	//////////////////////
 };
 
 inline void init(const char* name, int w, int h, bool resizable = 1, int winFlags = 0, int renFlags = 0)
 {
-	SDL_Init(SDL_INIT_VIDEO);
+	if(SDL_Init(SDL_INIT_VIDEO))
+    {
+        std::cerr << "Couldn't initialise video: " << SDL_GetError() << '\n';
+        return;
+    }
 	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, (resizable ? SDL_WINDOW_RESIZABLE : 0) | winFlags);
 	ren = SDL_CreateRenderer(win, -1, renFlags | SDL_RENDERER_TARGETTEXTURE);
 
@@ -298,8 +303,8 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 	SDL_SetRenderDrawColor(ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
 	SDL_RenderClear(ren);
 	
-	delta 	= 	(double)(SDL_GetTicks() - last)	/ 1000.;
-	elapsed	= 	(double)(SDL_GetTicks()) 		/ 1000.;
+	delta   = (double)(SDL_GetTicks() - last) / 1000.;
+	elapsed = (double)(SDL_GetTicks())        / 1000.;
 	last = SDL_GetTicks();
 
 	onRender(delta, elapsed);
@@ -313,7 +318,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 
 		if(WindowProps::getLocked())
 		{
-			switch(WindowProps::lock_type)
+			switch(WindowProps::getLockType())
 			{
 				case WindowProps::BARS:
 					{
