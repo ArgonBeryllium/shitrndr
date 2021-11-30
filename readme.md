@@ -1,13 +1,13 @@
 # Superbly Horrible, Inefficient & Tiresome Rendering Difficulty Reliever
 ...or **shitrndr** for short, is a boilerplate header for single-window SDL2 applications.
 
-It provides an SDL_Window* and SDL_Renderer* created using the provided parameters, as well as a **render loop**, **input manager** and **event handling**.
-It also provides a simple way to handle rendering at a set resolution in a re-scalable window, in the form of a *pixScale* and *lockType*s.
+It provides an SDL\_Window\* and SDL\_Renderer\* created using the provided parameters, as well as a **render loop**, **input manager** and **event handling**.
+It also provides a simple way to handle rendering at a set resolution in a re-scalable window, in the form of a pixScale and lockTypes.
 
 ## Setup
-As mentioned before, shitrndr is a **header**. That's it.  
-To use it in your project, simply **include** it and make sure the right **compiler flags** are on.  
-See the **demo files** for a simple usage demonstration.
+As mentioned before, shitrndr is a header. That's it.  
+To use it in your project, simply include it and make sure the right compiler flags are on.  
+See the [demo files](https://github.com/ArgonBeryllium/shitrndr/tree/master/src) for a simple usage demonstration.
 
 ## The aforementioned compiler flags
 
