@@ -40,31 +40,31 @@ namespace shitrndr::helpers
 template <typename T>
 struct vec2
 {
-    T x, y;
-    vec2() : x(0), y(0) {}
-    vec2(const T x_, const T y_) : x(x_), y(y_) {}
-    T getLength() { return sqrt(x*x + y*y); }
-    T getLengthSquare() { return x*x + y*y; }
-    vec2<T> normalised()  { T l = getLength(); return l==0 ? vec2{} : *this / l; }
+	T x, y;
+	vec2() : x(0), y(0) {}
+	vec2(const T x_, const T y_) : x(x_), y(y_) {}
+	T getLength() { return sqrt(x*x + y*y); }
+	T getLengthSquare() { return x*x + y*y; }
+	vec2<T> normalised()  { T l = getLength(); return l==0 ? vec2{} : *this / l; }
 
 	template <typename T2>
 	vec2<T2> to() const { return {(T2)x, (T2)y}; }
 
 	template <typename T2>
-    void operator+=(const vec2<T2>& v) { x += (T)v.x; y += (T)v.y; }
+	void operator+=(const vec2<T2>& v) { x += (T)v.x; y += (T)v.y; }
 	template <typename T2>
-    void operator-=(const vec2<T2>& v) { x -= (T)v.x; y -= (T)v.y; }
+	void operator-=(const vec2<T2>& v) { x -= (T)v.x; y -= (T)v.y; }
 	template <typename T2>
-    void operator*=(const vec2<T2>& v) { x *= (T)v.x; y *= (T)v.y; }
+	void operator*=(const vec2<T2>& v) { x *= (T)v.x; y *= (T)v.y; }
 	template <typename T2>
-    void operator/=(const vec2<T2>& v) { x /= (T)v.x; y /= (T)v.y; }
+	void operator/=(const vec2<T2>& v) { x /= (T)v.x; y /= (T)v.y; }
 	template <typename T2>
-    void operator*=(const T2& s) { x *= (T)s; y *= (T)s; }
+	void operator*=(const T2& s) { x *= (T)s; y *= (T)s; }
 	template <typename T2>
-    void operator/=(const T2& s) { x /= (T)s; y /= (T)s; }
+	void operator/=(const T2& s) { x /= (T)s; y /= (T)s; }
 
 	// Dot product of the two input vectors.
-    static T dot(const vec2& a, const vec2& b);
+	static T dot(const vec2& a, const vec2& b);
 };
 
 template <typename T1, typename T2>
@@ -93,6 +93,10 @@ inline bool operator!=(const vec2<T>& a, const vec2<T>& b) { return !(a==b); }
 
 template <typename T>
 inline T vec2<T>::dot(const vec2<T>& a, const vec2<T>& b) { return a.x * b.x + a.y * b.y; }
+
+// required for hashmaps
+const inline bool operator<(const shitrndr::helpers::vec2<float>& a, const shitrndr::helpers::vec2<float>& b) { return a.x < b.x; }
+
 }
 
 namespace shitrndr
@@ -204,12 +208,12 @@ public:
 
 	static inline int getPixScale() { return pixScale; }
 	static inline bool getLocked() { return slocked; }
-    static inline lockType getLockType() { return lock_type; }
+	static inline lockType getLockType() { return lock_type; }
 
 	static void setScaledSize(const int& sw_, const int& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; updateSize(); }
 	static void setPixScale(const int& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; updateSize(); }
 	static void setLocked(const bool& lock) { slocked = lock; }
-    static void setLockType(lockType type) { lock_type = type; }
+	static void setLockType(lockType type) { lock_type = type; }
 	//////////////////////
 };
 struct Input
@@ -253,10 +257,10 @@ public:
 inline void init(const char* name, int w, int h, bool resizable = 1, int winFlags = 0, int renFlags = 0)
 {
 	if(SDL_Init(SDL_INIT_VIDEO))
-    {
-        std::cerr << "Couldn't initialise video: " << SDL_GetError() << '\n';
-        return;
-    }
+	{
+	    std::cerr << "Couldn't initialise video: " << SDL_GetError() << '\n';
+	    return;
+	}
 	win = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, (resizable ? SDL_WINDOW_RESIZABLE : 0) | winFlags);
 	ren = SDL_CreateRenderer(win, -1, renFlags | SDL_RENDERER_TARGETTEXTURE);
 
@@ -302,7 +306,7 @@ inline void loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapse
 
 	SDL_SetRenderDrawColor(ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
 	SDL_RenderClear(ren);
-	
+
 	delta   = (double)(SDL_GetTicks() - last) / 1000.;
 	elapsed = (double)(SDL_GetTicks())        / 1000.;
 	last = SDL_GetTicks();
@@ -379,7 +383,7 @@ inline void loop()
 
 	SDL_Quit();
 #else
-    emscripten_set_main_loop(loopCycle, 0, 1);
+	emscripten_set_main_loop(loopCycle, 0, 1);
 #endif
 }
 
