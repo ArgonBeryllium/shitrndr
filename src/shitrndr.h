@@ -23,6 +23,7 @@ SOFTWARE.
 
 #include <iostream>
 #include <map>
+#include <functional>
 
 #if defined _WIN32 || defined __CYGWIN__ || defined __EMSCRIPTEN__
 #include <cmath>
@@ -123,14 +124,14 @@ inline void defOnRender(double d, double t)
 /////////////////////////
 
 // EVENT FUNCTION POINTERS //
-inline void (*onKeyDown)(const SDL_Keycode& key) = &defOnKey;
-inline void (*onKeyHeld)(const SDL_Keycode& key) = &defOnKey;
-inline void (*onKeyUp)(const SDL_Keycode& key) = &defOnKey;
-inline void (*onMBDown)(const uint8_t& but) = &defOnMB;
-inline void (*onMBUp)(const uint8_t& but) = &defOnMB;
-inline void (*onMouseMoved)(const helpers::vec2<int>& mp) = &defOnMM;
-inline void (*onEvent)(SDL_Event* event) = &defOnEvent;
-inline void (*onRender)(double delta, double time) = &defOnRender;
+inline std::function<void(const SDL_Keycode& key)> onKeyDown = &defOnKey;
+inline std::function<void(const SDL_Keycode& key)> onKeyHeld = &defOnKey;
+inline std::function<void(const SDL_Keycode& key)> onKeyUp = &defOnKey;
+inline std::function<void(const uint8_t& but)> onMBDown = &defOnMB;
+inline std::function<void(const uint8_t& but)> onMBUp = &defOnMB;
+inline std::function<void(const helpers::vec2<int>& mp)> onMouseMoved = &defOnMM;
+inline std::function<void(SDL_Event* event)> onEvent = &defOnEvent;
+inline std::function<void(double delta, double time)> onRender = &defOnRender;
 /////////////////////////////
 
 struct WindowProps
