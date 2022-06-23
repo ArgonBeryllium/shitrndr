@@ -401,8 +401,23 @@ inline void silentDefs()
 
 
 // DRAWING FUNCTIONS //
+inline void SetRenderColour(SDL_Renderer* rend, Uint8 r = 0, Uint8 g = 0, Uint8 b = 0, Uint8 a = 255) { SDL_SetRenderDrawColor(rend, r, g, b, a); }
+inline void SetColour(Uint8 r = 0, Uint8 g = 0, Uint8 b = 0, Uint8 a = 255) { SetRenderColour(ren, r, g, b, a); }
 inline void SetRenderColour(SDL_Renderer* rend, const SDL_Colour& col) { SDL_SetRenderDrawColor(rend, col.r, col.g, col.b, col.a); }
 inline void SetColour(const SDL_Colour& col) { SetRenderColour(ren, col); }
+
+inline void RenderDrawLine(SDL_Renderer* rend, int x1, int y1, int x2, int y2) { SDL_RenderDrawLine(ren, x1, y1, x2, y2); }
+inline void RenderDrawLine(SDL_Renderer* rend, const helpers::vec2<int>& a, const helpers::vec2<int>& b)
+{
+	SDL_RenderDrawLine(rend, a.x, a.y, b.x, b.y);
+}
+inline void RenderDrawLine(SDL_Renderer* rend, const helpers::vec2<float> a, const helpers::vec2<float>& b)
+{
+	SDL_RenderDrawLine(rend, a.x, a.y, b.x, b.y);
+}
+inline void DrawLine(int x1, int y1, int x2, int y2) { RenderDrawLine(ren, x1, y1, x2, y2); }
+inline void DrawLine(const helpers::vec2<int>& a, const helpers::vec2<int>& b) { RenderDrawLine(ren, a, b); }
+inline void DrawLine(const helpers::vec2<float>& a, const helpers::vec2<float>& b) { RenderDrawLine(ren, a, b); }
 
 inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
@@ -410,30 +425,43 @@ inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, con
 	for(float a = 0; a < l; a++)
 		SDL_RenderDrawPoint(rend, x + std::cos(a/l * 2*M_PI) * r, y + std::sin(a/l * 2*M_PI) * r);
 }
+inline void RenderDrawCircle(SDL_Renderer* rend, const helpers::vec2<int>& pos, const float& r) { RenderDrawCircle(rend, pos.x, pos.y, r); }
 inline void DrawCircle(const int& x, const int& y, const float& r) { RenderDrawCircle(ren, x, y, r); }
+inline void DrawCircle(const helpers::vec2<int>& pos, const float& r) { RenderDrawCircle(ren, pos.x, pos.y, r); }
 
 inline void RenderFillCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
-	int rs = r*r;
-	for(int py = -r; py < r; py++)
-		for(int px = -r; px < r; px++)
-			if(py*py + px*px < rs)
-				SDL_RenderDrawPoint(rend, x + px, y + py);
+	float l = 2*M_PI*r;
+	for(float a = 0; a < l; a++)
+	{
+		SDL_RenderDrawLine(rend, x, y, x + std::cos(a/l * 2*M_PI) * r, y + std::sin(a/l * 2*M_PI) * r);
+		// ugly compensation for single-pixel width SDL lines, results in slight horizontal stretching
+		SDL_RenderDrawLine(rend, x+1, y, x+1 + std::cos(a/l * 2*M_PI) * r, y + std::sin(a/l * 2*M_PI) * r);
+	}
 }
+inline void RenderFillCircle(SDL_Renderer* rend, const helpers::vec2<int>& pos, const float& r) { RenderFillCircle(rend, pos.x, pos.y, r); }
 inline void FillCircle(const int& x, const int& y, const float& r) { RenderFillCircle(ren, x, y, r); }
+inline void FillCircle(const helpers::vec2<int>& pos, const float& r) { RenderFillCircle(ren, pos.x, pos.y, r); }
 
 inline void RenderFillRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderFillRect(rend, &r); }
+inline void RenderFillRect(SDL_Renderer* rend, const helpers::vec2<int>& pos, const helpers::vec2<int>& dim) { RenderFillRect(rend, {pos.x, pos.y, dim.x, dim.y}); }
 inline void FillRect(const SDL_Rect& r) { RenderFillRect(ren, r); }
+inline void FillRect(const helpers::vec2<int>& pos, const helpers::vec2<int>& dim) { RenderFillRect(ren, {pos.x, pos.y, dim.x, dim.y}); }
 
 inline void RenderDrawRect(SDL_Renderer* rend, const SDL_Rect& r) { SDL_RenderDrawRect(rend, &r); }
+inline void RenderDrawRect(SDL_Renderer* rend, const helpers::vec2<int>& pos, const helpers::vec2<int>& dim) { RenderDrawRect(rend, {pos.x, pos.y, dim.x, dim.y}); }
 inline void DrawRect(const SDL_Rect& r) { RenderDrawRect(ren, r); }
+inline void DrawRect(const helpers::vec2<int>& pos, const helpers::vec2<int>& dim) { RenderDrawRect(ren, {pos.x, pos.y, dim.x, dim.y}); }
 
 inline void RenderCopy(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst) { SDL_RenderCopy(rend, tex, &src, &dst); }
 inline void RenderCopy(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& dst) { SDL_RenderCopy(rend, tex, 0, &dst); }
 inline void Copy(SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst) { RenderCopy(ren, tex, src, dst); }
 inline void Copy(SDL_Texture* tex, const SDL_Rect& dst) { RenderCopy(ren, tex, dst); }
 
-inline void RenderCopyEx(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip) { SDL_RenderCopyEx(rend, tex, &src, &dst, angle, &centre, flip); }
-inline void CopyEx(SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip) { SDL_RenderCopyEx(ren, tex, &src, &dst, angle, &centre, flip); }
+inline void RenderCopyEx(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip = SDL_FLIP_NONE) { SDL_RenderCopyEx(rend, tex, &src, &dst, angle, &centre, flip); }
+inline void RenderCopyEx(SDL_Renderer* rend, SDL_Texture* tex, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip = SDL_FLIP_NONE) { SDL_RenderCopyEx(rend, tex, 0, &dst, angle, &centre, flip); }
+inline void CopyEx(SDL_Texture* tex, const SDL_Rect& src, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip = SDL_FLIP_NONE) { SDL_RenderCopyEx(ren, tex, &src, &dst, angle, &centre, flip); }
+inline void CopyEx(SDL_Texture* tex, const SDL_Rect& dst, const double& angle, const SDL_Point& centre, const SDL_RendererFlip& flip = SDL_FLIP_NONE) { SDL_RenderCopyEx(ren, tex, 0, &dst, angle, &centre, flip); }
+inline void CopyEx(SDL_Texture* tex, const SDL_Rect& dst, const double& angle, const SDL_RendererFlip& flip = SDL_FLIP_NONE) { SDL_RenderCopyEx(ren, tex, 0, &dst, angle, 0, flip); }
 ///////////////////////
 }
