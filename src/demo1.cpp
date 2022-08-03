@@ -13,13 +13,21 @@ int main()
 	bg_col = {15, 15, 45, 255};
 	onRender = [](double d, double t)
 	{
+		int W = WindowProps::getWidth(), H = WindowProps::getHeight();
+		SetColour(abs(sin(t))*255, abs(sin(t*1.2))*255, abs(sin(t*.8))*255);
+		float mag = 3;
+		for(float i = 0; i != 100; i++)
+		{
+			DrawLine(((i/100-.5)*2*mag)*W, H, W/2, H*2/3);
+		}
+
 		static int s = 2;
 		if(Input::getKey(SDLK_SPACE)) s = std::rand();
 		std::srand(s);
 		for(int i = 0; i != 10; i++)
 		{
 			SDL_SetRenderDrawColor(ren, std::rand()%255, std::rand()%255, std::rand()%255, 255);
-			FillCircle(std::rand()%320, std::rand()%240, std::rand()%100);
+			FillCircle(std::rand()%320, std::rand()%240+std::sin(t*.9+i)*i, std::rand()%100);
 		}
 		
 		SDL_SetRenderDrawColor(ren, 255, 125, 0, 255);

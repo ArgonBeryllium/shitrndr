@@ -24,6 +24,7 @@ SOFTWARE.
 #include <iostream>
 #include <map>
 #include <functional>
+#include <vector>
 
 #if defined _WIN32 || defined __CYGWIN__ || defined __EMSCRIPTEN__
 #include <cmath>
@@ -418,6 +419,14 @@ inline void RenderDrawLine(SDL_Renderer* rend, const helpers::vec2<float> a, con
 inline void DrawLine(int x1, int y1, int x2, int y2) { RenderDrawLine(ren, x1, y1, x2, y2); }
 inline void DrawLine(const helpers::vec2<int>& a, const helpers::vec2<int>& b) { RenderDrawLine(ren, a, b); }
 inline void DrawLine(const helpers::vec2<float>& a, const helpers::vec2<float>& b) { RenderDrawLine(ren, a, b); }
+
+inline void RenderDrawLines(SDL_Renderer* rend, const SDL_Point* points, int count) { SDL_RenderDrawLines(rend, points, count); }
+inline void RenderDrawLines(SDL_Renderer* rend, const SDL_FPoint* points, int count) { SDL_RenderDrawLinesF(rend, points, count); }
+inline void RenderDrawLines(SDL_Renderer* rend, const std::vector<SDL_Point> points) { RenderDrawLines(rend, points.data(), points.size()); }
+inline void DrawLines(const SDL_Point* points, int count) { RenderDrawLines(ren, points, count); }
+inline void DrawLines(const SDL_FPoint* points, int count) { RenderDrawLines(ren, points, count); }
+inline void DrawLines(const std::vector<SDL_Point> points) { RenderDrawLines(ren, points.data(), points.size()); }
+inline void DrawLines(const std::vector<SDL_FPoint> points) { RenderDrawLines(ren, points.data(), points.size()); }
 
 inline void RenderDrawCircle(SDL_Renderer* rend, const int& x, const int& y, const float& r)
 {
