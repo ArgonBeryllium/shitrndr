@@ -260,6 +260,11 @@ public:
 
 		effects.push_front(&WindowProps::_applyPixScale);
 	}
+	static void _deinit()
+	{
+		SDL_DestroyTexture(_renProxy);
+		effects.clear();
+	}
 	//////////////////////
 
 	// For external use //
@@ -342,6 +347,17 @@ inline void init(const char* name, int w, int h, bool resizable = 1, int winFlag
 	WindowProps::_init(w, h);
 }
 
+inline bool _running = false;
+inline void quit()
+{
+	if(!_running) return;
+	_running = false;
+	WindowProps::_deinit();
+	SDL_DestroyRenderer(ren);
+	SDL_DestroyWindow(win);
+	SDL_Quit();
+}
+
 // For internal use only //
 #ifdef __EMSCRIPTEN__
 inline SDL_Event ev;
@@ -353,7 +369,7 @@ inline void _loopCycle()
 inline void _loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elapsed)
 #endif
 {
-	while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE)
+	while(SDL_PollEvent(&ev) && ev.window.event != SDL_WINDOWEVENT_CLOSE && _running)
 	{
 		onEvent(&ev);
 		switch (ev.type)
@@ -374,8 +390,12 @@ inline void _loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elaps
 			WindowProps::_setSize(ev.window.data1, ev.window.data2); 
 	}
 #ifdef __EMSCRIPTEN__
-	if(ev.window.event==SDL_WINDOWEVENT_CLOSE)
+	if(ev.window.event==SDL_WINDOWEVENT_CLOSE || !_running)
+	{
 		emscripten_cancel_main_loop();
+		quit();
+		return;
+	}
 #endif
 
 	SDL_SetRenderDrawColor(ren, bg_col.r, bg_col.g, bg_col.b, bg_col.a);
@@ -394,16 +414,17 @@ inline void _loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elaps
 // Main loop
 inline void loop()
 {
+	_running = true;
 #ifndef __EMSCRIPTEN__
 	SDL_Event ev;
 
 	Uint32 last = SDL_GetTicks();
 	double delta, elapsed = 0;
 
-	while(ev.window.event != SDL_WINDOWEVENT_CLOSE)
+	while(ev.window.event != SDL_WINDOWEVENT_CLOSE && _running)
 		_loopCycle(ev, last, delta, elapsed);
 
-	SDL_Quit();
+	quit();
 #else
 	emscripten_set_main_loop(_loopCycle, 0, 1);
 #endif
