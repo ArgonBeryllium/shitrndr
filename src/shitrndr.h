@@ -25,6 +25,7 @@ SOFTWARE.
 #include <map>
 #include <functional>
 #include <vector>
+#include <list>
 
 #if defined _WIN32 || defined __CYGWIN__ || defined __EMSCRIPTEN__
 #include <cmath>
@@ -146,6 +147,58 @@ private:
 	inline static int pixScale = 1;
 	inline static bool slocked;
 	inline static lockType lock_type = STRETCH;
+	inline static std::list<std::function<void(SDL_Texture*, double, double)>> effects;
+
+	static void _applyPixScale(SDL_Texture* proxy, double delta, double elapsed)
+	{
+		if(getPixScale()==1 && !getLocked()) return;
+		SDL_Rect r = getSizeRect();
+		SDL_Rect d;
+
+		if(getLocked())
+		{
+			switch(getLockType())
+			{
+				case BARS:
+					{
+						SDL_SetRenderDrawColor(ren, bars_col.r, bars_col.g, bars_col.b, bars_col.a);
+						SDL_SetRenderTarget(ren, 0);
+						SDL_RenderFillRect(ren, 0);
+
+						float cR = float(getRealWidth())/getRealHeight(), oR = float(getWidth())/getHeight(); 
+						d = getRealSizeRect();
+						if(cR>oR)
+						{
+							d.w = oR*d.h;
+							d.x = (getRealWidth()-d.w)/2;
+						}
+						else if(oR>cR)
+						{
+							d.h = d.w/oR;
+							d.y = (getRealHeight()-d.h)/2;
+						}
+					} break;
+				case CUTOFF:
+					{
+						float cR = float(getRealWidth())/getRealHeight(), oR = float(getWidth())/getHeight(); 
+						d = getRealSizeRect();
+						if(cR>oR) d.h = d.w/oR;
+						else if(oR>cR) d.w = oR*d.h;
+					} break;
+				case STRETCH:
+				default: d = getRealSizeRect(); break;
+			}
+		}
+		else d = getRealSizeRect();
+
+#if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
+		SDL_SetRenderTarget(ren, 0);
+#endif
+		SDL_RenderCopy(ren, proxy, &r, &d);
+#if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
+		SDL_SetRenderTarget(ren, WindowProps::_renProxy);
+#endif
+	}
 public:
 	// For internal use // 
 	inline static SDL_Texture* _renProxy;
@@ -183,9 +236,17 @@ public:
 
 		int pitch = r.w*4;
 
-		SDL_RenderReadPixels(ren, &r, WindowProps::format, pixels, pitch);
-		SDL_UpdateTexture(WindowProps::renProxy, 0, pixels, pitch);
+		SDL_RenderReadPixels(ren, &r, _format, pixels, pitch);
+		SDL_UpdateTexture(_renProxy, 0, pixels, pitch);
 #endif
+	}
+	static void _applyEffects(double d, double t)
+	{
+		for(auto e : effects)
+		{
+			_updateRenProxy();
+			e(_renProxy, d, t);
+		}
 	}
 	static void _setSize(const int& w_, const int& h_) { w = w_; h = h_; if(!getLocked()) { sw = w/pixScale; sh = h/pixScale; } _updateSize(); }
 	static void _setSize(const helpers::vec2<int>& s) { _setSize(s.x, s.y); }
@@ -196,6 +257,8 @@ public:
 		sw = w = w_;
 		sh = h = h_;
 		_updateSize();
+
+		effects.push_front(&WindowProps::_applyPixScale);
 	}
 	//////////////////////
 
@@ -215,10 +278,16 @@ public:
 	static inline bool getLocked() { return slocked; }
 	static inline lockType getLockType() { return lock_type; }
 
+	static inline std::list<std::function<void(SDL_Texture*, double, double)>>* getEffects() { return &effects; }
+
 	static void setScaledSize(const int& sw_, const int& sh_) { if(getLocked()) return; sw = sw_; sh = sh_; pixScale = (float)w/(float)sw; _updateSize(); }
 	static void setPixScale(const int& scale) { if(getLocked()) return; pixScale = scale; sw = w/pixScale; sh = h/pixScale; _updateSize(); }
 	static void setLocked(const bool& lock) { slocked = lock; }
 	static void setLockType(lockType type) { lock_type = type; }
+
+	static inline void pushEffectF(std::function<void(SDL_Texture*, double, double)> e) { effects.push_front(e); }
+	static inline void pushEffectB(std::function<void(SDL_Texture*, double, double)> e) { effects.push_back(e); }
+
 	//////////////////////
 };
 struct Input
@@ -317,60 +386,8 @@ inline void _loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elaps
 	last = SDL_GetTicks();
 
 	onRender(delta, elapsed);
-
-	if(WindowProps::getPixScale()!=1 || WindowProps::getLocked())
-	{
-		SDL_Rect r = WindowProps::getSizeRect();
-		SDL_Rect d;
-
-		WindowProps::_updateRenProxy();
-
-		if(WindowProps::getLocked())
-		{
-			switch(WindowProps::getLockType())
-			{
-				case WindowProps::BARS:
-					{
-						SDL_SetRenderDrawColor(ren, bars_col.r, bars_col.g, bars_col.b, bars_col.a);
-						SDL_SetRenderTarget(ren, 0);
-						SDL_RenderFillRect(ren, 0);
-
-						float cR = float(WindowProps::getRealWidth())/WindowProps::getRealHeight(), oR = float(WindowProps::getWidth())/WindowProps::getHeight(); 
-						d = WindowProps::getRealSizeRect();
-						if(cR>oR)
-						{
-							d.w = oR*d.h;
-							d.x = (WindowProps::getRealWidth()-d.w)/2;
-						}
-						else if(oR>cR)
-						{
-							d.h = d.w/oR;
-							d.y = (WindowProps::getRealHeight()-d.h)/2;
-						}
-					} break;
-				case WindowProps::CUTOFF:
-					{
-						float cR = float(WindowProps::getRealWidth())/WindowProps::getRealHeight(), oR = float(WindowProps::getWidth())/WindowProps::getHeight(); 
-						d = WindowProps::getRealSizeRect();
-						if(cR>oR) d.h = d.w/oR;
-						else if(oR>cR) d.w = oR*d.h;
-					} break;
-				case WindowProps::STRETCH:
-				default: d = WindowProps::getRealSizeRect(); break;
-			}
-		}
-		else d = WindowProps::getRealSizeRect();
-
-#if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
-		SDL_SetRenderTarget(ren, 0);
-#endif
-		SDL_RenderCopy(ren, WindowProps::_renProxy, &r, &d);
-		SDL_RenderPresent(shitrndr::ren);
-#if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
-		SDL_SetRenderTarget(ren, WindowProps::_renProxy);
-#endif
-	}
-	else SDL_RenderPresent(shitrndr::ren);
+	WindowProps::_applyEffects(delta, elapsed);
+	SDL_RenderPresent(shitrndr::ren);
 }
 ///////////////////////////
 
