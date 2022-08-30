@@ -148,8 +148,8 @@ private:
 	inline static lockType lock_type = STRETCH;
 public:
 	// For internal use // 
-	inline static SDL_Texture* renProxy;
-	inline static Uint32 format;
+	inline static SDL_Texture* _renProxy;
+	inline static Uint32 _format;
 
 	static void _updateSize()
 	{
@@ -159,12 +159,12 @@ public:
 		{
 			SDL_SetRenderTarget(ren, 0);
 
-			format = SDL_GetWindowPixelFormat(win);
-			if(renProxy) SDL_DestroyTexture(renProxy);
-			renProxy = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_TARGET, sw, sh);
+			_format = SDL_GetWindowPixelFormat(win);
+			if(_renProxy) SDL_DestroyTexture(_renProxy);
+			_renProxy = SDL_CreateTexture(ren, _format, SDL_TEXTUREACCESS_TARGET, sw, sh);
 
 #if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
-			if(pixScale!=1) SDL_SetRenderTarget(ren, renProxy);
+			if(pixScale!=1) SDL_SetRenderTarget(ren, _renProxy);
 #endif
 		}
 	}
@@ -364,10 +364,10 @@ inline void _loopCycle(SDL_Event& ev, Uint32& last, double& delta, double& elaps
 #if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
 		SDL_SetRenderTarget(ren, 0);
 #endif
-		SDL_RenderCopy(ren, WindowProps::renProxy, &r, &d);
+		SDL_RenderCopy(ren, WindowProps::_renProxy, &r, &d);
 		SDL_RenderPresent(shitrndr::ren);
 #if !defined _WIN32 && !defined __CYGWIN__ && !defined __EMSCRIPTEN__
-		SDL_SetRenderTarget(ren, WindowProps::renProxy);
+		SDL_SetRenderTarget(ren, WindowProps::_renProxy);
 #endif
 	}
 	else SDL_RenderPresent(shitrndr::ren);
