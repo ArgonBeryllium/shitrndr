@@ -6,7 +6,7 @@ EMXX=em++
 
 LIBS=-lSDL2
 CXXFLAGS=--std=c++17
-MINGWFLAGS=-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++
+MINGWFLAGS=-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread
 EMXXFLAGS=-s WASM=1 -s USE_SDL=2
 
 SOURCE=src/*
