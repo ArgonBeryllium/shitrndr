@@ -293,6 +293,16 @@ public:
 	static inline void pushEffectF(std::function<void(SDL_Texture*, double, double)> e) { effects.push_front(e); }
 	static inline void pushEffectB(std::function<void(SDL_Texture*, double, double)> e) { effects.push_back(e); }
 
+	static const inline SDL_Texture* getDefaultTarget()
+	{
+		//TODO test emscripten builds
+#if defined _WIN32 || defined __CYGWIN__
+		return NULL;
+#else
+		return _renProxy;
+#endif
+	}
+
 	//////////////////////
 };
 struct Input
